@@ -1,0 +1,91 @@
+# 🏀 Hoops Name Generator · AI Basketball Player Name Generator
+
+A deep learning-powered web application that generates unique, realistic, and creative basketball player names using PyTorch and FastAPI. The project features an interactive, basketball-themed UI with real-time temperature (creativity) control.
+
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![HTML5/CSS3](https://img.shields.io/badge/UI-HTML5%20%2F%20CSS3-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+
+---
+
+## 📌 Features
+
+* **Character-Level Deep Learning Model:** Generates brand-new player names based on patterns learned from real-world basketball datasets.
+* **Dynamic Temperature Control:** Real-time creativity adjustment via a custom basketball-themed slider ($0.20$ to $1.20$).
+* **FastAPI Backend:** Lightweight, high-performance REST API handling instant model inference.
+* **Premium Glassmorphic UI:** Modern Dark Mode interface with custom CSS animations and basketball court aesthetic elements.
+* **One-Click Reset:** Instantly reset inference temperature back to the optimized default ($0.70$).
+
+---
+
+## 🛠️ Tech Stack
+
+* **Machine Learning / Deep Learning:** PyTorch
+* **Backend:** FastAPI, Uvicorn
+* **Frontend:** HTML5, Modern CSS3 (Glassmorphism, Responsive Design), JavaScript (Fetch API)
+* **Environment:** Python 3.9+
+
+---
+
+## 📁 Project Structure
+
+```text
+hoops-name-generator/
+│
+├── data/                  # Dataset files for training
+├── models/                # Trained PyTorch model weights (.pt / .pth)
+├── notebooks/             # Data exploration & training experiments
+├── src/                   # Core neural network architectures & generation pipeline
+├── app.py                 # FastAPI application & API endpoints
+├── index.html             # Interactive frontend user interface
+├── train_and_save.py      # Model training & serialization script
+├── requirements.txt       # Python dependencies
+└── README.md              # Project documentation
+
+## 🚀 ***QUICK START***
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/egemenilerigelen/hoops-name-generator.git](https://github.com/egemenilerigelen/hoops-name-generator.git)
+cd hoops-name-generator
+
+--------------------------------------------------------------------------------
+
+### 2. Create & Activate Virtual Environment
+# On Windows
+python -m venv venv
+.\venv\Scripts\activate
+
+# On macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+--------------------------------------------------------------------------------
+
+### 3. Install Dependencies
+Bash
+pip install -r requirements.txt
+
+--------------------------------------------------------------------------------
+
+### 4. Run the Application
+Launch the FastAPI server using Uvicorn:
+
+Bash
+uvicorn app:app --reload
+
+Open your browser and navigate to:
+
+[http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+--------------------------------------------------------------------------------
+
+🎯 How Temperature (Creativity) Works
+The temperature parameter scaling dictates the randomness of character probability distributions during sampling:
+
+Low Temperature (0.20 - 0.50): Predictable, conventional, and highly realistic names.
+
+Balanced Temperature (0.70 - Default): Optimal balance between realism and novelty.
+
+High Temperature (0.90 - 1.20): High variance, wild, and creative combinations.
