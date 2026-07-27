@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoops Name Generator · Premium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #1e293b 0%, #0f172a 70%, #020617 100%);
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ---- ARKA PLAN BASKETBOL DOKUSU ---- */
+        .bg-premium {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0.20;
+        }
+
+        .bg-premium svg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200vw;
+            height: 200vh;
+            transform: translate(-50%, -50%) rotate(-18deg);
+        }
+
+        .bg-premium .layer-two {
+            transform: translate(-50%, -50%) rotate(12deg) scale(0.9);
+            opacity: 0.35;
+        }
+
+        .bg-premium .layer-three {
+            transform: translate(-50%, -50%) rotate(-42deg) scale(0.7);
+            opacity: 0.25;
+        }
+
+        .bg-premium .glow-lines {
+            opacity: 0.20;
+            filter: blur(1px);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(14px) saturate(1.2);
+            padding: 2.2rem 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(249, 115, 22, 0.15);
+            text-align: center;
+            max-width: 460px;
+            width: 92%;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(1.8rem, 5.5vw, 2.5rem);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 0.15rem;
+            color: #f97316;
+            text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        h1 span {
+            background: rgba(249, 115, 22, 0.15);
+            padding: 0.1rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            color: #facc15;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        p.subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            letter-spacing: 1.5px;
+            font-weight: 400;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* Card & Name */
+        .card {
+            background: rgba(11, 19, 41, 0.7);
+            backdrop-filter: blur(4px);
+            border: 1.5px solid rgba(249, 115, 22, 0.35);
+            border-radius: 1.2rem;
+            padding: 1.8rem 1.2rem;
+            margin-bottom: 1.5rem;
+            min-height: 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: border 0.3s ease;
+            box-shadow: inset 0 0 30px rgba(249, 115, 22, 0.05);
+        }
+
+        .card:hover {
+            border-color: rgba(249, 115, 22, 0.7);
+        }
+
+        .player-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(249, 115, 22, 0.3);
+            word-break: break-word;
+        }
+
+        .placeholder-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            color: #64748b;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        button.main-btn {
+            font-family: 'Oswald', sans-serif;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff;
+            border: none;
+            padding: 1rem 1.8rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 0.8rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 100%;
+            box-shadow: 0 6px 20px 0 rgba(249, 115, 22, 0.4);
+            margin-bottom: 1.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.main-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        button.main-btn:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 10px 30px 0 rgba(249, 115, 22, 0.6);
+        }
+
+        button.main-btn:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Footer / Slider */
+        .slider-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 1.4rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-val {
+            color: #f97316;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            background: rgba(249, 115, 22, 0.15);
+            padding: 0.1rem 0.7rem;
+            border-radius: 20px;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+
+        .reset-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 0.65rem;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s ease;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .reset-btn:hover {
+            color: #facc15;
+            background: rgba(249, 115, 22, 0.1);
+            text-decoration: none;
+        }
+
+        /* Slider Track */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 5px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #1e293b 0%, #f97316 100%);
+            border-radius: 10px;
+            border: none;
+        }
+
+        /* Slider Thumb - SİYAH ŞERİTLİ BASKETBOL TOPU (Webkit) */
+        input[type=range]::-webkit-slider-thumb {
+            height: 22px;
+            width: 22px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -8.5px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23f97316' stroke='%230f172a' stroke-width='4'/%3E%3Cpath d='M4,50 H96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M50,4 V96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M18,12 A45,45 0 0,1 18,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M82,12 A45,45 0 0,0 82,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+            transition: transform 0.15s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2) rotate(25deg);
+        }
+
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 5px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #1e293b 0%, #f97316 100%);
+            border-radius: 10px;
+            border: none;
+        }
+
+        /* Slider Thumb - SİYAH ŞERİTLİ BASKETBOL TOPU (Firefox) */
+        input[type=range]::-moz-range-thumb {
+            height: 22px;
+            width: 22px;
+            border: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23f97316' stroke='%230f172a' stroke-width='4'/%3E%3Cpath d='M4,50 H96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M50,4 V96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M18,12 A45,45 0 0,1 18,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M82,12 A45,45 0 0,0 82,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 1.5rem 1.2rem; }
+            .player-name { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ANA KART -->
+    <div class="container">
+        <h1>
+            🏀 HOOPS
+            <span>AI</span>
+        </h1>
+        <p class="subtitle">Premium Basketball Name Generator</p>
+
+        <div class="card">
+            <div id="nameDisplay" class="placeholder-text">RASTGELE İSİM ÜRETMEK İÇİN BUTONA BASINIZ</div>
+        </div>
+
+        <button id="generateBtn" class="main-btn" onclick="generateName()">İSİM ÜRET</button>
+
+        <div class="slider-footer">
+            <div class="slider-header">
+                <span>🎯 CREATIVITY <span id="tempValue" class="slider-val">0.70</span></span>
+                <button class="reset-btn" onclick="resetTemperature()">↺ RESET</button>
+            </div>
+            <input type="range" id="tempSlider" min="0.2" max="1.2" step="0.05" value="0.7" oninput="updateTempValue(this.value)">
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_TEMP = 0.7;
+
+        function updateTempValue(val) {
+            document.getElementById('tempValue').innerText = parseFloat(val).toFixed(2);
+        }
+
+        function resetTemperature() {
+            const slider = document.getElementById('tempSlider');
+            slider.value = DEFAULT_TEMP;
+            updateTempValue(DEFAULT_TEMP);
+        }
+
+        async function generateName() {
+            const display = document.getElementById('nameDisplay');
+            const btn = document.getElementById('generateBtn');
+            const currentTemp = document.getElementById('tempSlider').value;
+
+            btn.disabled = true;
+            btn.innerText = "🏀 ÜRETİLİYOR...";
+
+            try {
+                const response = await fetch(`/api/generate?temperature=${currentTemp}`);
+                const data = await response.json();
+                
+                display.className = "player-name";
+                display.innerText = data.name;
+            } catch (error) {
+                console.error("Hata oluştu:", error);
+                display.innerText = "⚡ BAĞLANTI HATASI!";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "İSİM ÜRET";
+            }
+        }
+    </script>
+</body>
+</html>
