@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoops Name Generator · Premium</title>
+    <title>Hoops Name Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -14,277 +14,324 @@
             padding: 0;
         }
 
+        :root {
+            --wood-950: #170e07;
+            --wood-900: #241407;
+            --wood-800: #38200d;
+            --wood-700: #4d2c12;
+            --chalk: #f4efe3;
+            --chalk-dim: rgba(244, 239, 227, 0.5);
+            --leather: #c2622a;
+            --leather-dark: #8f4318;
+            --leather-light: #dd8447;
+            --ink: #120b06;
+            --line: rgba(244, 239, 227, 0.16);
+        }
+
+        html, body {
+            height: 100%;
+        }
+
         body {
-            background: radial-gradient(circle at 20% 30%, #1e293b 0%, #0f172a 70%, #020617 100%);
-            color: #f8fafc;
+            background:
+                radial-gradient(ellipse 900px 500px at 50% -8%, rgba(244, 239, 227, 0.07), transparent 60%),
+                radial-gradient(ellipse 1000px 600px at 50% 118%, rgba(0, 0, 0, 0.65), transparent 60%),
+                repeating-linear-gradient(90deg, var(--wood-800) 0px, var(--wood-800) 38px, var(--wood-700) 39px, var(--wood-700) 41px),
+                var(--wood-900);
+            color: var(--chalk);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Oswald', sans-serif;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* ---- ARKA PLAN BASKETBOL DOKUSU ---- */
-        .bg-premium {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+        /* Baseline */
+        .baseline {
+            position: fixed;
+            left: 6%;
+            right: 6%;
+            bottom: 4%;
+            height: 6px;
+            border-top: 2px solid var(--line);
+            border-bottom: 2px solid var(--line);
             pointer-events: none;
-            overflow: hidden;
-            opacity: 0.20;
+            z-index: 0;
+            opacity: 0.6;
         }
 
-        .bg-premium svg {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 200vw;
-            height: 200vh;
-            transform: translate(-50%, -50%) rotate(-18deg);
-        }
-
-        .bg-premium .layer-two {
-            transform: translate(-50%, -50%) rotate(12deg) scale(0.9);
-            opacity: 0.35;
-        }
-
-        .bg-premium .layer-three {
-            transform: translate(-50%, -50%) rotate(-42deg) scale(0.7);
-            opacity: 0.25;
-        }
-
-        .bg-premium .glow-lines {
-            opacity: 0.20;
-            filter: blur(1px);
-        }
-
-        /* ---- ANA KART ---- */
-        .container {
+        /* ---- CARD ---- */
+        .lane-card {
             position: relative;
             z-index: 1;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(14px) saturate(1.2);
-            padding: 2.2rem 2rem;
-            border-radius: 2rem;
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
-            text-align: center;
-            max-width: 460px;
             width: 92%;
-            background-clip: padding-box;
-            --mouse-x: 50%;
-            --mouse-y: 50%;
+            max-width: 440px;
+            background: linear-gradient(180deg, rgba(23, 14, 7, 0.92) 0%, rgba(18, 11, 6, 0.96) 100%);
+            border: 3px solid var(--chalk);
+            box-shadow:
+                0 0 0 5px var(--wood-950),
+                0 0 0 8px rgba(244, 239, 227, 0.3),
+                0 40px 70px -20px rgba(0, 0, 0, 0.85);
+            border-radius: 150px 150px 22px 22px / 108px 108px 22px 22px;
+            padding: 2.6rem 2.1rem 2.2rem;
+            box-sizing: border-box;
         }
 
-        /* Statik border */
-        .container::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: rgba(255, 255, 255, 0.05);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: -1;
+        @media (max-width: 480px) {
+            .lane-card {
+                border-radius: 90px 90px 18px 18px / 70px 70px 18px 18px;
+                padding: 2.2rem 1.3rem 1.7rem;
+            }
         }
 
-        /* Mouse takip eden Glow Effect */
-        .container::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 2px;
-            background: radial-gradient(
-                200px circle at var(--mouse-x) var(--mouse-y),
-                rgba(249, 115, 22, 1), 
-                transparent 70%
-            );
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none; /* Slider çakışmasını önleyen kritik kural */
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 2;
+        /* ROSTER HEADER CONTAINER */
+        .roster-header-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -0.8rem;
+            margin-bottom: 1.2rem;
         }
 
-        .container:hover::before {
-            opacity: 1;
+        .roster-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--chalk-dim);
+            cursor: pointer;
+            padding: 0.35rem 0.75rem;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .roster-link:hover {
+            color: var(--leather-light);
+            border-color: rgba(194, 98, 42, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .roster-link:focus-visible {
+            outline: 2px solid var(--leather-light);
+            outline-offset: 2px;
+        }
+
+        .roster-count {
+            display: inline-block;
+            font-weight: 700;
+            color: var(--leather-light);
+            background: var(--wood-900);
+            padding: 0.05rem 0.42rem;
+            border-radius: 3px;
+            border: 1px solid rgba(194, 98, 42, 0.4);
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 8px rgba(194, 98, 42, 0.5);
         }
 
         h1 {
-            font-family: 'Oswald', sans-serif;
-            font-size: clamp(1.8rem, 5.5vw, 2.5rem);
-            letter-spacing: 2px;
+            font-family: 'Anton', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1.9rem, 6vw, 2.5rem);
+            letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 0.15rem;
-            color: #f97316;
-            text-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        h1 span {
-            background: rgba(249, 115, 22, 0.15);
-            padding: 0.1rem 0.8rem;
-            border-radius: 40px;
-            font-size: 0.7em;
-            letter-spacing: 2px;
-            color: #facc15;
-            border: 1px solid rgba(249, 115, 22, 0.3);
+            text-align: center;
+            color: var(--chalk);
+            line-height: 1;
         }
 
         p.subtitle {
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-bottom: 2rem;
-            letter-spacing: 1.5px;
+            font-size: 0.78rem;
+            color: var(--chalk-dim);
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: 2.1rem;
+            letter-spacing: 1px;
             font-weight: 400;
             text-transform: uppercase;
-            opacity: 0.7;
         }
 
-        /* Card & Name */
-        .card {
-            background: rgba(11, 19, 41, 0.7);
-            backdrop-filter: blur(4px);
-            border: 1.5px solid rgba(249, 115, 22, 0.35);
-            border-radius: 1.2rem;
-            padding: 1.8rem 1.2rem;
-            margin-bottom: 1.5rem;
-            min-height: 110px;
+        /* Nameplate (KUTU BOYUTU SABİTLENDİ) */
+        .nameplate {
+            position: relative;
+            background: var(--ink);
+            border: 1px solid var(--line);
+            border-radius: 0.5rem;
+            padding: 1.2rem;
+            margin-bottom: 1.6rem;
+            height: 125px; /* Sabit yükseklik */
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: border 0.3s ease;
-            box-shadow: inset 0 0 30px rgba(249, 115, 22, 0.05);
-        }
-
-        .card:hover {
-            border-color: rgba(249, 115, 22, 0.7);
-        }
-
-        .player-name {
-            font-family: 'Oswald', sans-serif;
-            font-size: 2.1rem;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            text-shadow: 0 2px 10px rgba(249, 115, 22, 0.3);
-            word-break: break-word;
-        }
-
-        .placeholder-text {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            color: #64748b;
-            letter-spacing: 1px;
-            font-weight: 500;
-        }
-
-        button.main-btn {
-            font-family: 'Oswald', sans-serif;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: #ffffff;
-            border: none;
-            padding: 1rem 1.8rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            border-radius: 0.8rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            width: 100%;
-            box-shadow: 0 6px 20px 0 rgba(249, 115, 22, 0.4);
-            margin-bottom: 1.8rem;
-            position: relative;
+            text-align: center;
             overflow: hidden;
-            z-index: 3;
         }
 
-        button.main-btn::after {
-            content: '';
+        .nameplate::before {
+            content: "";
             position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+            inset: 6px;
+            border: 1px solid rgba(244, 239, 227, 0.08);
+            border-radius: 0.3rem;
             pointer-events: none;
         }
 
-        button.main-btn:hover {
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 10px 30px 0 rgba(249, 115, 22, 0.6);
+        /* Favori / Yıldız Butonu (Sağ Üst) */
+        .badge-btn {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--chalk-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            outline: none;
+            line-height: 1;
         }
 
-        button.main-btn:active {
-            transform: translateY(1px) scale(0.98);
+        .badge-btn.visible {
+            opacity: 0.65;
+            pointer-events: auto;
         }
 
-        /* Footer / Slider (Tıklanabilirliği garantiye almak için z-index yüksek tutuldu) */
-        .slider-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            padding-top: 1.4rem;
-            position: relative;
-            z-index: 3;
+        .badge-btn.visible:hover {
+            opacity: 1;
+            color: var(--leather-light);
+            transform: scale(1.15);
         }
 
-        .slider-header {
+        .badge-btn.active {
+            opacity: 1;
+            color: var(--leather-light);
+            text-shadow: 0 0 10px rgba(221, 132, 71, 0.6);
+            transform: scale(1.1);
+        }
+
+        /* İsim Alanı Stili */
+        .player-name {
+            font-family: 'Anton', sans-serif;
+            font-weight: 400;
+            color: var(--chalk);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            word-break: break-word;
+            padding: 0 0.5rem;
+            line-height: 1.1;
+            transition: font-size 0.2s ease;
+        }
+
+        .placeholder-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--chalk-dim);
+            letter-spacing: 0.5px;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        /* Press button */
+        button.press-btn {
+            font-family: 'Oswald', sans-serif;
+            background: var(--leather);
+            color: var(--ink);
+            border: none;
+            padding: 0.95rem 1.8rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 0.4rem;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 4px 4px 0 0 var(--ink);
+            margin-bottom: 2rem;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+        }
+
+        button.press-btn:hover {
+            background: var(--leather-light);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 0 var(--ink);
+        }
+
+        button.press-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 0 var(--ink);
+        }
+
+        button.press-btn:disabled {
+            cursor: default;
+            opacity: 0.85;
+        }
+
+        /* Gauge footer */
+        .gauge-footer {
+            border-top: 1px dashed var(--line);
+            padding-top: 1.3rem;
+        }
+
+        .gauge-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.8rem;
-            font-size: 0.7rem;
-            color: #94a3b8;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            margin-bottom: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--chalk-dim);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        .slider-val {
-            color: #f97316;
-            font-family: 'Oswald', sans-serif;
-            font-size: 0.9rem;
-            background: rgba(249, 115, 22, 0.15);
-            padding: 0.1rem 0.7rem;
-            border-radius: 20px;
-            border: 1px solid rgba(249, 115, 22, 0.2);
+        .gauge-val {
+            color: var(--leather-light);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: var(--ink);
+            padding: 0.15rem 0.55rem;
+            border-radius: 3px;
+            border: 1px solid rgba(194, 98, 42, 0.4);
+            text-shadow: 0 0 8px rgba(194, 98, 42, 0.75);
+            font-variant-numeric: tabular-nums;
         }
 
         .reset-btn {
             background: none;
             border: none;
-            color: #64748b;
-            font-size: 0.65rem;
+            color: var(--chalk-dim);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
             cursor: pointer;
             text-decoration: underline;
-            transition: color 0.2s ease;
-            padding: 0.2rem 0.5rem;
-            border-radius: 20px;
-            font-weight: 500;
+            letter-spacing: 0.5px;
+            padding: 0.2rem 0.4rem;
         }
 
         .reset-btn:hover {
-            color: #facc15;
-            background: rgba(249, 115, 22, 0.1);
-            text-decoration: none;
+            color: var(--leather-light);
         }
 
-        /* Slider Track */
+        /* Slider track */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
             background: transparent;
-            position: relative;
-            z-index: 4;
         }
 
         input[type=range]:focus {
@@ -293,103 +340,220 @@
 
         input[type=range]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 5px;
+            height: 4px;
             cursor: pointer;
-            background: linear-gradient(90deg, #1e293b 0%, #f97316 100%);
-            border-radius: 10px;
-            border: none;
+            background: linear-gradient(90deg, var(--wood-700) 0%, var(--leather) 100%);
+            border-radius: 2px;
         }
 
-        /* Slider Thumb - Webkit */
         input[type=range]::-webkit-slider-thumb {
-            height: 22px;
-            width: 22px;
+            height: 20px;
+            width: 20px;
             cursor: pointer;
             -webkit-appearance: none;
-            margin-top: -8.5px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23f97316' stroke='%230f172a' stroke-width='4'/%3E%3Cpath d='M4,50 H96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M50,4 V96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M18,12 A45,45 0 0,1 18,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M82,12 A45,45 0 0,0 82,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3C/svg%3E");
+            margin-top: -8px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23c2622a' stroke='%23120b06' stroke-width='5'/%3E%3Cpath d='M4,50 H96' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3Cpath d='M50,4 V96' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3Cpath d='M18,12 A45,45 0 0,1 18,88' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3Cpath d='M82,12 A45,45 0 0,0 82,88' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3C/svg%3E");
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
             transition: transform 0.15s ease;
         }
 
         input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.2) rotate(25deg);
+            transform: scale(1.15);
         }
 
         input[type=range]::-moz-range-track {
             width: 100%;
-            height: 5px;
+            height: 4px;
             cursor: pointer;
-            background: linear-gradient(90deg, #1e293b 0%, #f97316 100%);
-            border-radius: 10px;
-            border: none;
+            background: linear-gradient(90deg, var(--wood-700) 0%, var(--leather) 100%);
+            border-radius: 2px;
         }
 
-        /* Slider Thumb - Firefox */
         input[type=range]::-moz-range-thumb {
-            height: 22px;
-            width: 22px;
+            height: 20px;
+            width: 20px;
             border: none;
             cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23f97316' stroke='%230f172a' stroke-width='4'/%3E%3Cpath d='M4,50 H96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M50,4 V96' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M18,12 A45,45 0 0,1 18,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3Cpath d='M82,12 A45,45 0 0,0 82,88' stroke='%230f172a' stroke-width='6' fill='none'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23c2622a' stroke='%23120b06' stroke-width='5'/%3E%3Cpath d='M4,50 H96' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3Cpath d='M50,4 V96' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3Cpath d='M18,12 A45,45 0 0,1 18,88' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3Cpath d='M82,12 A45,45 0 0,0 82,88' stroke='%23120b06' stroke-width='6' fill='none'/%3E%3C/svg%3E");
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
         }
 
-        @media (max-width: 480px) {
-            .container { padding: 1.5rem 1.2rem; }
-            .player-name { font-size: 1.6rem; }
+        .tick-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.58rem;
+            color: rgba(244, 239, 227, 0.35);
+            letter-spacing: 0.5px;
+        }
+
+        /* ---- ROSTER VIEW ---- */
+        #rosterView {
+            display: none;
+        }
+
+        .roster-list {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid var(--line);
+            border-radius: 0.5rem;
+            background: var(--ink);
+            margin-bottom: 0.4rem;
+        }
+
+        .roster-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .roster-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .roster-list::-webkit-scrollbar-thumb {
+            background: var(--wood-700);
+            border-radius: 3px;
+        }
+
+        .roster-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .roster-row:last-child {
+            border-bottom: none;
+        }
+
+        .roster-index {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--leather-light);
+            width: 1.7rem;
+            flex-shrink: 0;
+        }
+
+        .roster-name {
+            font-family: 'Anton', sans-serif;
+            font-weight: 400;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--chalk);
+            flex: 1;
+            text-align: left;
+            word-break: break-word;
+        }
+
+        .roster-remove {
+            background: none;
+            border: none;
+            color: var(--chalk-dim);
+            font-size: 0.95rem;
+            cursor: pointer;
+            padding: 0.2rem 0.3rem;
+            line-height: 1;
+            flex-shrink: 0;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .roster-remove:hover {
+            color: var(--leather-light);
+            transform: scale(1.15);
+        }
+
+        .roster-empty {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--chalk-dim);
+            text-align: center;
+            padding: 2.4rem 1.4rem;
+            letter-spacing: 0.5px;
+            line-height: 1.7;
+        }
+
+        .roster-footnote {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: rgba(244, 239, 227, 0.3);
+            text-align: center;
+            letter-spacing: 0.5px;
+            padding-top: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- ANA KART -->
-    <div class="container">
-        <h1>
-            NAME GENERATOR
-        </h1>
-        <p class="subtitle">Build your basketball player</p>
+    <div class="baseline"></div>
 
-        <div class="card">
-            <div id="nameDisplay" class="placeholder-text">RASTGELE İSİM ÜRETMEK İÇİN BUTONA BASINIZ</div>
+    <div class="lane-card">
+        <div class="roster-header-container">
+            <button id="rosterToggle" class="roster-link" onclick="toggleRosterView()">
+                <span id="rosterLabel">ROSTER</span><span id="rosterCount" class="roster-count">0</span>
+            </button>
         </div>
 
-        <button id="generateBtn" class="main-btn" onclick="generateName()">İSİM ÜRET</button>
+        <h1>NAME GENERATOR</h1>
+        <p class="subtitle">BUILD YOUR BASKETBALL PLAYER</p>
 
-        <div class="slider-footer">
-            <div class="slider-header">
-                <span>🎯 CREATIVITY <span id="tempValue" class="slider-val">0.70</span></span>
-                <button class="reset-btn" onclick="resetTemperature()">↺ DEFAULT</button>
+        <div id="generatorView">
+            <div class="nameplate">
+                <button id="starBtn" class="badge-btn" onclick="toggleFavorite()" title="Add to Favorites">★</button>
+                <div id="nameDisplay" class="placeholder-text">PRESS BUTTON TO GENERATE A RANDOM NAME</div>
             </div>
-            <input type="range" id="tempSlider" min="0.2" max="1.2" step="0.05" value="0.7" oninput="updateTempValue(this.value)">
+
+            <button id="generateBtn" class="press-btn" onclick="generateName()">GENERATE</button>
+
+            <div class="gauge-footer">
+                <div class="gauge-header">
+                    <span>CREATIVITY <span id="tempValue" class="gauge-val">0.70</span></span>
+                    <button class="reset-btn" onclick="resetTemperature()">↺ DEFAULT</button>
+                </div>
+                <input type="range" id="tempSlider" min="0.2" max="1.2" step="0.05" value="0.7" oninput="updateTempValue(this.value)">
+                <div class="tick-row">
+                    <span>0.2</span><span>0.45</span><span>0.7</span><span>0.95</span><span>1.2</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="rosterView">
+            <div id="rosterList" class="roster-list"></div>
+            <p class="roster-footnote">YOUR FAVORITE NAMES ARE SAVED HERE</p>
         </div>
     </div>
 
     <script>
-        // ---- GLOW EFFECT İÇİN KOORDİNAT HESAPLAYICI ----
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.querySelector('.container');
-            
-            if (container) {
-                container.addEventListener('mousemove', (e) => {
-                    const rect = container.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    container.style.setProperty('--mouse-x', `${x}px`);
-                    container.style.setProperty('--mouse-y', `${y}px`);
-                });
-            }
-        });
-
-        // ---- GENERATOR FONKSİYONLARI ----
         const DEFAULT_TEMP = 0.7;
+        let currentGeneratedName = "";
+        let showingRoster = false;
+
+        function normalizeName(str) {
+            return str.replace(/İ/g, 'I').replace(/i/g, 'ı');
+        }
+
+        /* İSMİN UZUNLUĞUNA GÖRE FONT BOYUTUNU DİNAMİK AYARLAYAN FONKSİYON */
+        function adjustFontSize(name) {
+            const display = document.getElementById('nameDisplay');
+            const len = name.length;
+
+            if (len <= 12) {
+                display.style.fontSize = '2.15rem';
+            } else if (len <= 18) {
+                display.style.fontSize = '1.65rem';
+            } else if (len <= 24) {
+                display.style.fontSize = '1.35rem';
+            } else {
+                display.style.fontSize = '1.1rem';
+            }
+        }
 
         function updateTempValue(val) {
             document.getElementById('tempValue').innerText = parseFloat(val).toFixed(2);
@@ -401,26 +565,151 @@
             updateTempValue(DEFAULT_TEMP);
         }
 
+        function getFavorites() {
+            return JSON.parse(localStorage.getItem('hoops_favorites') || '[]');
+        }
+
+        function updateRosterCount() {
+            const el = document.getElementById('rosterCount');
+            if (el) el.innerText = getFavorites().length;
+        }
+
+        function toggleFavorite() {
+            if (!currentGeneratedName) return;
+
+            let favorites = getFavorites();
+            const starBtn = document.getElementById('starBtn');
+
+            if (favorites.includes(currentGeneratedName)) {
+                favorites = favorites.filter(name => name !== currentGeneratedName);
+                starBtn.classList.remove('active');
+            } else {
+                favorites.push(currentGeneratedName);
+                starBtn.classList.add('active');
+            }
+
+            localStorage.setItem('hoops_favorites', JSON.stringify(favorites));
+            updateRosterCount();
+        }
+
+        function updateStarState(name) {
+            const starBtn = document.getElementById('starBtn');
+            const favorites = getFavorites();
+
+            starBtn.classList.add('visible');
+
+            if (favorites.includes(name)) {
+                starBtn.classList.add('active');
+            } else {
+                starBtn.classList.remove('active');
+            }
+        }
+
+        /* ---- ROSTER (favorites list) ---- */
+        function renderRoster() {
+            const listEl = document.getElementById('rosterList');
+            const favorites = getFavorites();
+            listEl.innerHTML = '';
+
+            if (favorites.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'roster-empty';
+                empty.innerHTML = 'NO FAVORITE NAMES YET';
+                listEl.appendChild(empty);
+                return;
+            }
+
+            favorites.forEach((name, i) => {
+                const row = document.createElement('div');
+                row.className = 'roster-row';
+
+                const index = document.createElement('span');
+                index.className = 'roster-index';
+                index.textContent = String(i + 1).padStart(2, '0');
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'roster-name';
+                nameEl.textContent = name;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'roster-remove';
+                removeBtn.title = 'Remove from roster';
+                removeBtn.innerText = '✕';
+                removeBtn.addEventListener('click', () => removeFavorite(name));
+
+                row.appendChild(index);
+                row.appendChild(nameEl);
+                row.appendChild(removeBtn);
+                listEl.appendChild(row);
+            });
+        }
+
+        function removeFavorite(name) {
+            const favorites = getFavorites().filter(n => n !== name);
+            localStorage.setItem('hoops_favorites', JSON.stringify(favorites));
+            renderRoster();
+            updateRosterCount();
+
+            if (name === currentGeneratedName) {
+                document.getElementById('starBtn').classList.remove('active');
+            }
+        }
+
+        function toggleRosterView() {
+            showingRoster = !showingRoster;
+            const genView = document.getElementById('generatorView');
+            const rosterView = document.getElementById('rosterView');
+            const label = document.getElementById('rosterLabel');
+            const count = document.getElementById('rosterCount');
+
+            if (showingRoster) {
+                genView.style.display = 'none';
+                rosterView.style.display = 'block';
+                label.innerText = '← GENERATE';
+                count.style.display = 'none';
+                renderRoster();
+            } else {
+                genView.style.display = '';
+                rosterView.style.display = 'none';
+                label.innerText = 'ROSTER';
+                count.style.display = 'inline-block';
+                updateRosterCount();
+            }
+        }
+
+        updateRosterCount();
+
         async function generateName() {
             const display = document.getElementById('nameDisplay');
             const btn = document.getElementById('generateBtn');
+            const starBtn = document.getElementById('starBtn');
             const currentTemp = document.getElementById('tempSlider').value;
 
             btn.disabled = true;
-            btn.innerText = "🏀 ÜRETİLİYOR...";
+            btn.innerText = "GENERATING...";
 
             try {
                 const response = await fetch(`/api/generate?temperature=${currentTemp}`);
                 const data = await response.json();
-                
+
+                currentGeneratedName = normalizeName(data.name);
                 display.className = "player-name";
-                display.innerText = data.name;
+                
+                /* Font boyutunu uzunluğa göre ayarla ve ismi bas */
+                adjustFontSize(currentGeneratedName);
+                display.innerText = currentGeneratedName;
+
+                updateStarState(currentGeneratedName);
+
             } catch (error) {
-                console.error("Hata oluştu:", error);
-                display.innerText = "⚡ BAĞLANTI HATASI!";
+                console.error("Error occurred:", error);
+                display.innerText = "⚡ CONNECTION ERROR!";
+                display.style.fontSize = '0.8rem';
+                starBtn.classList.remove('visible', 'active');
+                currentGeneratedName = "";
             } finally {
                 btn.disabled = false;
-                btn.innerText = "İSİM ÜRET";
+                btn.innerText = "GENERATE";
             }
         }
     </script>
