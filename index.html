@@ -62,6 +62,7 @@
             filter: blur(1px);
         }
 
+        /* ---- ANA KART ---- */
         .container {
             position: relative;
             z-index: 1;
@@ -69,11 +70,53 @@
             backdrop-filter: blur(14px) saturate(1.2);
             padding: 2.2rem 2rem;
             border-radius: 2rem;
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(249, 115, 22, 0.15);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
             text-align: center;
             max-width: 460px;
             width: 92%;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background-clip: padding-box;
+            --mouse-x: 50%;
+            --mouse-y: 50%;
+        }
+
+        /* Statik border */
+        .container::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Mouse takip eden Glow Effect */
+        .container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 2px;
+            background: radial-gradient(
+                200px circle at var(--mouse-x) var(--mouse-y),
+                rgba(249, 115, 22, 1), 
+                transparent 70%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none; /* Slider çakışmasını önleyen kritik kural */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+
+        .container:hover::before {
+            opacity: 1;
         }
 
         h1 {
@@ -167,6 +210,7 @@
             margin-bottom: 1.8rem;
             position: relative;
             overflow: hidden;
+            z-index: 3;
         }
 
         button.main-btn::after {
@@ -186,10 +230,12 @@
             transform: translateY(1px) scale(0.98);
         }
 
-        /* Footer / Slider */
+        /* Footer / Slider (Tıklanabilirliği garantiye almak için z-index yüksek tutuldu) */
         .slider-footer {
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             padding-top: 1.4rem;
+            position: relative;
+            z-index: 3;
         }
 
         .slider-header {
@@ -237,6 +283,8 @@
             -webkit-appearance: none;
             width: 100%;
             background: transparent;
+            position: relative;
+            z-index: 4;
         }
 
         input[type=range]:focus {
@@ -252,7 +300,7 @@
             border: none;
         }
 
-        /* Slider Thumb - SİYAH ŞERİTLİ BASKETBOL TOPU (Webkit) */
+        /* Slider Thumb - Webkit */
         input[type=range]::-webkit-slider-thumb {
             height: 22px;
             width: 22px;
@@ -280,7 +328,7 @@
             border: none;
         }
 
-        /* Slider Thumb - SİYAH ŞERİTLİ BASKETBOL TOPU (Firefox) */
+        /* Slider Thumb - Firefox */
         input[type=range]::-moz-range-thumb {
             height: 22px;
             width: 22px;
@@ -304,10 +352,9 @@
     <!-- ANA KART -->
     <div class="container">
         <h1>
-            🏀 HOOPS
-            <span>AI</span>
+            NAME GENERATOR
         </h1>
-        <p class="subtitle">Premium Basketball Name Generator</p>
+        <p class="subtitle">Build your basketball player</p>
 
         <div class="card">
             <div id="nameDisplay" class="placeholder-text">RASTGELE İSİM ÜRETMEK İÇİN BUTONA BASINIZ</div>
@@ -318,13 +365,30 @@
         <div class="slider-footer">
             <div class="slider-header">
                 <span>🎯 CREATIVITY <span id="tempValue" class="slider-val">0.70</span></span>
-                <button class="reset-btn" onclick="resetTemperature()">↺ RESET</button>
+                <button class="reset-btn" onclick="resetTemperature()">↺ DEFAULT</button>
             </div>
             <input type="range" id="tempSlider" min="0.2" max="1.2" step="0.05" value="0.7" oninput="updateTempValue(this.value)">
         </div>
     </div>
 
     <script>
+        // ---- GLOW EFFECT İÇİN KOORDİNAT HESAPLAYICI ----
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.container');
+            
+            if (container) {
+                container.addEventListener('mousemove', (e) => {
+                    const rect = container.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    container.style.setProperty('--mouse-x', `${x}px`);
+                    container.style.setProperty('--mouse-y', `${y}px`);
+                });
+            }
+        });
+
+        // ---- GENERATOR FONKSİYONLARI ----
         const DEFAULT_TEMP = 0.7;
 
         function updateTempValue(val) {
