@@ -12,10 +12,10 @@ A deep learning-powered web application that generates unique, realistic, and cr
 ## 📌 Features
 
 * **Character-Level Deep Learning Model:** Generates brand-new player names based on patterns learned from real-world basketball datasets.
-* **Dynamic Temperature Control:** Real-time creativity adjustment via a custom basketball-themed slider ($0.20$ to $1.20$).
+* **Dynamic Temperature Control:** Real-time creativity adjustment via a custom basketball-themed slider (0.20 to 1.20).
 * **FastAPI Backend:** Lightweight, high-performance REST API handling instant model inference.
 * **Premium Glassmorphic UI:** Modern Dark Mode interface with custom CSS animations and basketball court aesthetic elements.
-* **One-Click Reset:** Instantly reset inference temperature back to the optimized default ($0.70$).
+* **One-Click Reset:** Instantly reset inference temperature back to the optimized default (0.70).
 
 ---
 
@@ -42,17 +42,22 @@ hoops-name-generator/
 ├── train_and_save.py      # Model training & serialization script
 ├── requirements.txt       # Python dependencies
 └── README.md              # Project documentation
+```
 
-## 🚀 ***QUICK START***
+---
+
+## 🚀 Quick Start
 
 ### 1. Clone the Repository
-```bash
-git clone [https://github.com/egemenilerigelen/hoops-name-generator.git](https://github.com/egemenilerigelen/hoops-name-generator.git)
-cd hoops-name-generator
 
---------------------------------------------------------------------------------
+```bash
+git clone https://github.com/egemenilerigelen/hoops-name-generator.git
+cd hoops-name-generator
+```
 
 ### 2. Create & Activate Virtual Environment
+
+```bash
 # On Windows
 python -m venv venv
 .\venv\Scripts\activate
@@ -60,32 +65,48 @@ python -m venv venv
 # On macOS/Linux
 python3 -m venv venv
 source venv/bin/activate
-
---------------------------------------------------------------------------------
+```
 
 ### 3. Install Dependencies
-Bash
-pip install -r requirements.txt
 
---------------------------------------------------------------------------------
+```bash
+pip install -r requirements.txt
+```
 
 ### 4. Run the Application
+
 Launch the FastAPI server using Uvicorn:
 
-Bash
+```bash
 uvicorn app:app --reload
+```
 
 Open your browser and navigate to:
 
-[http://127.0.0.1:8000](http://127.0.0.1:8000)
+```
+http://127.0.0.1:8000
+```
 
---------------------------------------------------------------------------------
+---
 
-🎯 How Temperature (Creativity) Works
+## 🎯 How Temperature (Creativity) Works
+
 The temperature parameter scaling dictates the randomness of character probability distributions during sampling:
 
-Low Temperature (0.20 - 0.50): Predictable, conventional, and highly realistic names.
+| Range | Behavior |
+|---|---|
+| **Low (0.20 – 0.50)** | Predictable, conventional, and highly realistic names. |
+| **Balanced (0.70 — Default)** | Optimal balance between realism and novelty. |
+| **High (0.90 – 1.20)** | High variance, wild, and creative combinations. |
 
-Balanced Temperature (0.70 - Default): Optimal balance between realism and novelty.
+---
 
-High Temperature (0.90 - 1.20): High variance, wild, and creative combinations.
+## 📄 License
+
+This project is open source. Feel free to use, modify, and distribute it.
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome. Feel free to check the [issues page](https://github.com/egemenilerigelen/hoops-name-generator/issues) if you want to contribute.
