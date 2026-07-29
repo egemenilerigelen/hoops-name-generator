@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+torch
+numpy
+
+# pip freeze > requirements.txt
