@@ -48,27 +48,66 @@
             overflow-x: hidden;
         }
 
-        /* Baseline */
-        .baseline {
+        /* Floating Info Trigger */
+        .floating-info-btn {
             position: fixed;
-            left: 6%;
-            right: 6%;
-            bottom: 4%;
-            height: 6px;
-            border-top: 2px solid var(--line);
-            border-bottom: 2px solid var(--line);
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.6;
+            left: 24px;
+            bottom: 24px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(18, 11, 6, 0.85);
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            padding: 0.45rem 0.9rem;
+            color: var(--chalk-dim);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
-        /* ---- CARD ---- */
+        .floating-info-btn:hover {
+            color: var(--chalk);
+            border-color: var(--leather-light);
+            background: var(--ink);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(194, 98, 42, 0.25);
+        }
+
+        .floating-info-btn .info-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--wood-700);
+            color: var(--leather-light);
+            font-weight: 700;
+            font-size: 0.65rem;
+        }
+
+        @media (max-width: 600px) {
+            .floating-info-btn {
+                left: 16px;
+                bottom: 16px;
+                padding: 0.4rem 0.75rem;
+            }
+        }
+
+        /* Card Layout */
         .lane-card {
             position: relative;
             z-index: 1;
             width: 92%;
             max-width: 440px;
-            height: 540px; /* Her iki ekran modunda da kart boyutu tam eşit kalır */
+            height: 540px;
             display: flex;
             flex-direction: column;
             background: linear-gradient(180deg, rgba(23, 14, 7, 0.92) 0%, rgba(18, 11, 6, 0.96) 100%);
@@ -86,11 +125,11 @@
             .lane-card {
                 border-radius: 90px 90px 18px 18px / 70px 70px 18px 18px;
                 padding: 2.2rem 1.3rem 1.7rem;
-                height: 500px; /* Mobil ekranlar için sabit yükseklik */
+                height: 500px;
             }
         }
 
-        /* ROSTER HEADER CONTAINER */
+        /* Header Navigation */
         .roster-header-container {
             display: flex;
             justify-content: center;
@@ -162,7 +201,7 @@
             text-transform: uppercase;
         }
 
-        /* Nameplate */
+        /* Name Display Box */
         .nameplate {
             position: relative;
             background: var(--ink);
@@ -187,7 +226,7 @@
             pointer-events: none;
         }
 
-        /* Favori / Yıldız Butonu */
+        /* Favorite Action Button */
         .badge-btn {
             position: absolute;
             top: 10px;
@@ -226,7 +265,7 @@
             transform: scale(1.1);
         }
 
-        /* İsim Alanı Stili */
+        /* Generated Name Typography */
         .player-name {
             font-family: 'Anton', sans-serif;
             font-weight: 400;
@@ -248,7 +287,7 @@
             line-height: 1.6;
         }
 
-        /* Press button */
+        /* Main CTA Button */
         button.press-btn {
             font-family: 'Oswald', sans-serif;
             background: var(--leather);
@@ -283,7 +322,7 @@
             opacity: 0.85;
         }
 
-        /* Gauge footer */
+        /* Creativity Slider Footer */
         .gauge-footer {
             border-top: 1px dashed var(--line);
             padding-top: 1.3rem;
@@ -312,7 +351,6 @@
             padding: 0.15rem 0.55rem;
             border-radius: 3px;
             border: 1px solid rgba(194, 98, 42, 0.4);
-            text-shadow: 0 0 8px rgba(194, 98, 42, 0.75);
             font-variant-numeric: tabular-nums;
         }
 
@@ -332,7 +370,7 @@
             color: var(--leather-light);
         }
 
-        /* Slider track */
+        /* Range Input Controls */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
@@ -399,7 +437,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* ---- ROSTER VIEW ---- */
+        /* Roster View Components */
         #generatorView, #rosterView {
             display: flex;
             flex-direction: column;
@@ -503,12 +541,110 @@
             margin-top: auto;
         }
 
+        /* Architecture Info Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 7, 4, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: linear-gradient(180deg, rgba(23, 14, 7, 0.98) 0%, rgba(18, 11, 6, 0.98) 100%);
+            border: 2px solid var(--chalk);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 420px;
+            padding: 1.8rem 1.6rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+            transform: translateY(20px);
+            transition: transform 0.25s ease;
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--line);
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .modal-title {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.35rem;
+            letter-spacing: 1px;
+            color: var(--chalk);
+            text-transform: uppercase;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--chalk-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0.2rem 0.4rem;
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--leather-light);
+            transform: scale(1.15);
+        }
+
+        .modal-body {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--chalk-dim);
+            line-height: 1.6;
+        }
+
+        .modal-step {
+            margin-bottom: 1.1rem;
+        }
+
+        .modal-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-step-title {
+            color: var(--leather-light);
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="baseline"></div>
+    <!-- Technical Specs Action Button -->
+    <button class="floating-info-btn" onclick="openModal()" title="Learn how the deep learning engine works">
+        <span class="info-icon">i</span>
+        <span>HOW IT WORKS</span>
+    </button>
 
+    <!-- Main Container -->
     <div class="lane-card">
         <div class="roster-header-container">
             <button id="rosterToggle" class="roster-link" onclick="toggleRosterView()">
@@ -519,6 +655,7 @@
         <h1>NAME GENERATOR</h1>
         <p class="subtitle">BUILD YOUR BASKETBALL PLAYER</p>
 
+        <!-- Generator View -->
         <div id="generatorView">
             <div class="nameplate">
                 <button id="starBtn" class="badge-btn" onclick="toggleFavorite()" title="Add to Favorites">★</button>
@@ -539,9 +676,34 @@
             </div>
         </div>
 
+        <!-- Saved Names View -->
         <div id="rosterView">
             <div id="rosterList" class="roster-list"></div>
             <p class="roster-footnote">YOUR FAVORITE NAMES ARE SAVED HERE</p>
+        </div>
+    </div>
+
+    <!-- Architecture Modal -->
+    <div id="infoModal" class="modal-overlay" onclick="closeModalOnOuterClick(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-title">🧠 UNDER THE HOOD</span>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-step">
+                    <div class="modal-step-title">1. Deep Learning Engine</div>
+                    <p>Trained on thousands of real NBA player names using a Recurrent Neural Network (LSTM) to learn authentic basketball naming patterns.</p>
+                </div>
+                <div class="modal-step">
+                    <div class="modal-step-title">2. Character Generation</div>
+                    <p>Predicts the next character step-by-step based on preceding letters, creating completely new and realistic names.</p>
+                </div>
+                <div class="modal-step">
+                    <div class="modal-step-title">3. Creativity Gauge</div>
+                    <p>Adjusts sampling temperature. Low values stick to safe, traditional name structures; high values generate bold and unique combinations.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -550,10 +712,12 @@
         let currentGeneratedName = "";
         let showingRoster = false;
 
+        // Formats character encoding for uniform display
         function normalizeName(str) {
             return str.replace(/İ/g, 'I').replace(/i/g, 'ı');
         }
 
+        // Dynamically resizes text based on name length to prevent overflow
         function adjustFontSize(name) {
             const display = document.getElementById('nameDisplay');
             const len = name.length;
@@ -579,6 +743,7 @@
             updateTempValue(DEFAULT_TEMP);
         }
 
+        /* Favorite Management (localStorage) */
         function getFavorites() {
             return JSON.parse(localStorage.getItem('hoops_favorites') || '[]');
         }
@@ -619,7 +784,7 @@
             }
         }
 
-        /* ---- ROSTER (favorites list) ---- */
+        /* Roster View Renderer */
         function renderRoster() {
             const listEl = document.getElementById('rosterList');
             const favorites = getFavorites();
@@ -691,8 +856,24 @@
             }
         }
 
+        /* Modal Handlers */
+        function openModal() {
+            document.getElementById('infoModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').classList.remove('active');
+        }
+
+        function closeModalOnOuterClick(e) {
+            if (e.target.id === 'infoModal') {
+                closeModal();
+            }
+        }
+
         updateRosterCount();
 
+        /* Inference API Request */
         async function generateName() {
             const display = document.getElementById('nameDisplay');
             const btn = document.getElementById('generateBtn');
