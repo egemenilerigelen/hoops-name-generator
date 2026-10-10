@@ -1,33 +1,54 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse
-from src.lstm_model import LSTMPipeline
+from pydantic import BaseModel
+
+from src.config import CHECKPOINT_PATH, DEFAULT_TEMPERATURE, MAX_TEMPERATURE, MIN_TEMPERATURE, STATIC_DIR
+from src.generator import NameGenerationError, NameGeneratorService
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  # Model süreç başına bir kez yüklenir; istekler sırasında disk erişimi olmaz
+  app.state.generator = NameGeneratorService.from_checkpoint(CHECKPOINT_PATH)
+  yield
+
 
 app = FastAPI(
-    title="Hoops Name Generator API",
-    description="LSTM tabanlı basketbolcu ismi üretici servis",
+    title='Hoops Name Generator API',
+    description='LSTM tabanlı basketbolcu ismi üretici servis',
+    lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-# Model ağırlıklarını yüklüyoruz
-pipeline = LSTMPipeline(data_path="data/processed/clean_names.json")
-pipeline.load_weights("models/lstm_weights.pth")
+class GeneratedName(BaseModel):
+  name: str
+  temperature: float
 
 
-@app.get("/")
+@app.get('/', include_in_schema=False)
 def read_root():
-  # Ana adrese gelen isteklere index.html dosyasını döndürüyoruz
-  return FileResponse("index.html")
+  return FileResponse(STATIC_DIR / 'index.html')
 
 
-@app.get("/api/generate")
-def generate_name(temperature: float = 0.7):
-  name = pipeline.generate_full_name(temperature=temperature)
-  return {"name": name, "temperature": temperature}
+@app.get('/api/generate', response_model=GeneratedName)
+def generate_name(
+    request: Request,
+    temperature: float = Query(
+        DEFAULT_TEMPERATURE,
+        ge=MIN_TEMPERATURE,
+        le=MAX_TEMPERATURE,
+        description='Örnekleme sıcaklığı: düşük = güvenli, yüksek = yaratıcı',
+    ),
+):
+  try:
+    name = request.app.state.generator.generate(temperature)
+  except NameGenerationError as e:
+    raise HTTPException(status_code=503, detail=str(e)) from e
+  return GeneratedName(name=name, temperature=temperature)
+
+
+@app.get('/api/health')
+def health():
+  return {'status': 'ok'}
