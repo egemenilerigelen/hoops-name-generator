@@ -30,3 +30,5 @@ venv.bak/
 # OS Generated Files
 .DS_Store
 Thumbs.db
+# Test cache
+.pytest_cache/
