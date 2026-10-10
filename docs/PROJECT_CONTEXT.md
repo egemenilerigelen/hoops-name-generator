@@ -5,12 +5,12 @@
 - **Project Name:** Hoops Name Generator (AI-Powered NBA Player Name Generator)
 - **Core Intent:** Evolved from a monolithic Python script into a modular, tested, full-stack AI web application.
 - **Primary Functionality:** Generates novel, phonetically authentic NBA player names with a conditional character-level LSTM trained on every player in NBA history (1940s–present, 5,063 cleaned names). Names that already belong to a real player are never returned.
-- **Architecture Style:** Modular OOP, single-page frontend with in-browser model inference (deployed serverless on GitHub Pages), plus an optional stateless FastAPI REST backend.
-- **Live Demo:** https://egemenilerigelen.github.io/hoops-name-generator/
+- **Architecture Style:** Modular OOP, single-page frontend with in-browser model inference (deployed serverless on Vercel), plus an optional stateless FastAPI REST backend.
+- **Live Demo:** https://hoops-name.vercel.app
 
 ## 2. Technical Stack & Backend Architecture
 
-- **Core Technologies:** Python 3.10+, PyTorch, FastAPI, Uvicorn, Vanilla JavaScript (in-browser inference). Data collection uses `nba_api`; tests use `pytest` + `httpx2` + Node.js; deployment uses GitHub Actions and GitHub Pages.
+- **Core Technologies:** Python 3.10+, PyTorch, FastAPI, Uvicorn, Vanilla JavaScript (in-browser inference). Data collection uses `nba_api`; tests use `pytest` + `httpx2` + Node.js; CI runs on GitHub Actions; hosting is Vercel (static).
 
 ### Data Pipeline
 `train.py` orchestrates the steps; the modules themselves are pure and do no file I/O (`src/io_utils.py` handles JSON reading and writing).
@@ -97,7 +97,9 @@ hoops-name-generator/
 │   └── lstm_weights.pth    # Self-contained checkpoint
 ├── tests/                  # data_loader, generator, trainer/checkpoint, api, web_model (+ js_runner.cjs)
 ├── .github/workflows/
-│   └── pages.yml           # CI: test → GitHub Pages deploy
+│   └── ci.yml              # CI: pytest on every push / PR
+├── vercel.json             # Vercel: no framework, no build, output static/
+├── .vercelignore           # Upload only static/ to Vercel
 ├── docs/
 │   └── PROJECT_CONTEXT.md  # This document
 ├── .gitattributes          # LF line endings, binary *.pth
@@ -153,12 +155,13 @@ python train.py --scrape              # re-fetch NBA data, then retrain
 python -m src.generator               # print sample names in the terminal
 ```
 
-## 7. Deployment (GitHub Pages, serverless)
+## 7. Deployment (Vercel, serverless)
 
 - **Why serverless:** the model is tiny (~220k parameters) but PyTorch is large, and container hosting with free tiers is unreliable (e.g. Hugging Face Docker Spaces require a paid PRO plan). Running inference in the browser makes hosting free, with no cold starts.
 - **Export (`src/web_export.py`):** the checkpoint becomes `static/model.json` (~1.3 MB): vocabulary, special-token indices, model config, generation limits, known names, and every tensor as base64 little-endian float32 (bit-exact with PyTorch).
 - **Browser inference (`static/name-generator.js`):** a JavaScript port of `NameGeneratorService` with an embedding lookup, a stacked LSTM cell (PyTorch gate order i, f, g, o), a linear head, temperature softmax sampling, the same validity/novelty filter, and title-casing. The model is downloaded once and then cached in memory; generation takes ~9 ms per name.
 - **Frontend integration:** `index.html` calls `HoopsGenerator.generateName(temperature)` instead of `fetch('/api/generate')`. The visual design is unchanged.
 - **Verification:** `tests/test_web_model.py` checks that `model.json` matches the checkpoint, that the JS forward pass matches PyTorch logits (atol 1e-4) via Node.js, and that JS-generated names are novel and fit the UI.
-- **CI/CD (`.github/workflows/pages.yml`):** pytest on every push and PR; on `main`, `static/` is uploaded and deployed to GitHub Pages.
+- **Hosting (Vercel Hobby, free):** Vercel's GitHub integration deploys `main` to https://hoops-name.vercel.app and creates a preview URL for every other branch and pull request. `vercel.json` sets `framework: null`, empty install/build commands and `outputDirectory: static`; `.vercelignore` uploads only `static/`, so Vercel never auto-detects `app.py` as a FastAPI function (PyTorch would exceed function size limits).
+- **CI (`.github/workflows/ci.yml`):** pytest on every push and PR.
 - **FastAPI** still serves the same `static/` folder plus the REST API for local use.

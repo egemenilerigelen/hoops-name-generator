@@ -7,7 +7,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![HTML5/CSS3](https://img.shields.io/badge/UI-HTML5%20%2F%20CSS3-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 
-**🔗 Live demo: [https://egemenilerigelen.github.io/hoops-name-generator/](https://egemenilerigelen.github.io/hoops-name-generator/)**
+**🔗 Live demo: [hoops-name.vercel.app](https://hoops-name.vercel.app)**
 
 ---
 
@@ -16,7 +16,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 * **Character-Level Deep Learning Model:** Generates brand-new player names based on patterns learned from every player in NBA history. First and last names are modeled separately, and names that already belong to a real player are filtered out.
 * **Dynamic Temperature Control:** Real-time creativity adjustment via a custom basketball-themed slider (0.20 to 1.20).
 * **Favorites Roster:** Save any generated name to a persistent personal roster with a single tap on the star icon, browse your saved names in a dedicated roster view, and remove them individually whenever you like.
-* **Runs Entirely in the Browser:** The trained LSTM is exported to JSON and executed in plain JavaScript, so the live site is a free, serverless GitHub Pages deployment with no cold starts.
+* **Runs Entirely in the Browser:** The trained LSTM is exported to JSON and executed in plain JavaScript, so the live site is a free, serverless static deployment on Vercel with no cold starts.
 * **FastAPI Backend:** The same model is also served through a REST API (`/api/generate`) for local use and integrations.
 * **Basketball Court-Themed UI:** Wood-grain background, chalkboard-style typography (Anton, Oswald, JetBrains Mono), and leather-accented components for an immersive court aesthetic.
 * **One-Click Reset:** Instantly reset inference temperature back to the optimized default (0.70).
@@ -28,7 +28,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 * **Machine Learning / Deep Learning:** PyTorch
 * **Backend:** FastAPI, Uvicorn
 * **In-Browser Inference:** Vanilla JavaScript LSTM forward pass (verified against PyTorch in tests)
-* **CI/CD:** GitHub Actions → GitHub Pages
+* **CI / Hosting:** GitHub Actions (tests) · Vercel (static hosting, preview deployments)
 * **Frontend:** HTML5, Modern CSS3 (custom properties, responsive design), JavaScript (Fetch API)
 * **Client-Side Storage:** Browser `localStorage` for persisting the favorites roster
 * **Typography:** Google Fonts — Anton, Oswald, JetBrains Mono
@@ -64,7 +64,9 @@ hoops-name-generator/
 ├── models/
 │   └── lstm_weights.pth   # Self-contained checkpoint (weights + vocab + config)
 ├── tests/                 # pytest suite (preprocessing, trainer, generator, API, JS ↔ PyTorch parity)
-├── .github/workflows/     # CI: tests on every push, GitHub Pages deploy on main
+├── .github/workflows/     # CI: tests on every push and pull request
+├── vercel.json            # Vercel: serve static/ only, no build step
+├── .vercelignore          # Upload only static/ (keeps the Python backend off Vercel)
 ├── requirements.txt       # Runtime dependencies
 └── requirements-dev.txt   # Data collection & test dependencies
 ```
@@ -149,11 +151,15 @@ Interactive API docs are available at `http://127.0.0.1:8000/docs`.
 
 ---
 
-## ☁️ Deployment (GitHub Pages)
+## ☁️ Deployment (Vercel)
 
-The live site is fully static: `static/` (HTML, `name-generator.js`, `model.json`) is published to GitHub Pages, and the LSTM runs in the visitor's browser, so hosting costs nothing.
+The live site is fully static: `static/` (HTML, `name-generator.js`, `model.json`) is served by Vercel's free Hobby plan, and the LSTM runs in the visitor's browser, so hosting costs nothing.
 
-`.github/workflows/pages.yml` runs the test suite on every push and pull request, including a check that the JavaScript forward pass matches PyTorch and that `model.json` is in sync with the checkpoint. On `main` it then deploys `static/` to Pages.
+* **Production:** every push to `main` is deployed to [hoops-name.vercel.app](https://hoops-name.vercel.app) through Vercel's GitHub integration.
+* **Previews:** every other branch and pull request gets its own preview URL, so changes can be tried before merging.
+* `vercel.json` (no framework, no build, output `static/`) and `.vercelignore` ensure only the static site is uploaded, so Vercel never tries to run the FastAPI/PyTorch backend.
+
+`.github/workflows/ci.yml` runs the test suite on every push and pull request, including a check that the JavaScript forward pass matches PyTorch and that `model.json` is in sync with the checkpoint.
 
 After retraining, commit both `models/lstm_weights.pth` and `static/model.json` (`train.py` regenerates the latter automatically; `python -m src.web_export` does it manually).
 
