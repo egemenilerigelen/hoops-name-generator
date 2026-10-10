@@ -2,7 +2,7 @@
 
 A deep learning-powered web application that generates unique, realistic, and creative basketball player names using PyTorch and FastAPI. The project features an interactive, basketball court-themed UI with real-time temperature (creativity) control and a personal favorites roster.
 
-![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![HTML5/CSS3](https://img.shields.io/badge/UI-HTML5%20%2F%20CSS3-E34F26?style=for-the-badge&logo=html5&logoColor=white)
@@ -11,7 +11,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 
 ## 📌 Features
 
-* **Character-Level Deep Learning Model:** Generates brand-new player names based on patterns learned from real-world basketball datasets.
+* **Character-Level Deep Learning Model:** Generates brand-new player names based on patterns learned from every player in NBA history. First and last names are modeled separately, and names that already belong to a real player are filtered out.
 * **Dynamic Temperature Control:** Real-time creativity adjustment via a custom basketball-themed slider (0.20 to 1.20).
 * **Favorites Roster:** Save any generated name to a persistent personal roster with a single tap on the star icon, browse your saved names in a dedicated roster view, and remove them individually whenever you like.
 * **FastAPI Backend:** Lightweight, high-performance REST API handling instant model inference.
@@ -27,7 +27,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 * **Frontend:** HTML5, Modern CSS3 (custom properties, responsive design), JavaScript (Fetch API)
 * **Client-Side Storage:** Browser `localStorage` for persisting the favorites roster
 * **Typography:** Google Fonts — Anton, Oswald, JetBrains Mono
-* **Environment:** Python 3.9+
+* **Environment:** Python 3.10+
 
 ---
 
@@ -36,16 +36,26 @@ A deep learning-powered web application that generates unique, realistic, and cr
 ```text
 hoops-name-generator/
 │
-├── data/                  # Dataset files for training
-├── models/                # Trained PyTorch model weights (.pt / .pth)
-├── src/                   # Core neural network architectures & generation pipeline
-├── app.py                 # FastAPI application & API endpoints
-├── main.py                # Application entry point
-├── index.html             # Interactive frontend user interface
-├── train_and_save.py      # Model training & serialization script
-├── requirements.txt       # Python dependencies
-├── .gitignore              # Git ignore rules (venv, __pycache__, etc.)
-└── README.md              # Project documentation
+├── app.py                 # FastAPI app: serves the UI and the /api endpoints
+├── train.py               # End-to-end pipeline: (scrape) → clean → train → save checkpoint
+├── static/
+│   └── index.html         # Single-file frontend (HTML/CSS/Vanilla JS)
+├── src/
+│   ├── config.py          # Paths, hyperparameters and generation limits
+│   ├── scraper.py         # Fetches all-time NBA player names via nba_api
+│   ├── preprocessing.py   # Unicode → Latin normalization & name cleaning
+│   ├── data_loader.py     # First/last name splitting, Vocabulary, Dataset
+│   ├── lstm_model.py      # CharLSTM (Embedding → LSTM → Linear)
+│   ├── trainer.py         # Training loop, validation, early stopping, checkpointing
+│   └── generator.py       # NameGeneratorService: temperature sampling & novelty filter
+├── data/
+│   ├── raw/               # Raw scraped names
+│   └── processed/         # Cleaned names used for training
+├── models/
+│   └── lstm_weights.pth   # Self-contained checkpoint (weights + vocab + config)
+├── tests/                 # pytest suite (preprocessing, generator, API)
+├── requirements.txt       # Runtime dependencies
+└── requirements-dev.txt   # Data collection & test dependencies
 ```
 
 ---
@@ -90,6 +100,41 @@ Open your browser and navigate to:
 ```
 http://127.0.0.1:8000
 ```
+
+### 5. (Optional) Retrain the Model
+
+```bash
+pip install -r requirements-dev.txt
+python train.py            # retrain from data/processed/clean_names.json
+python train.py --scrape   # re-fetch the NBA player list first
+python -m src.generator    # print sample names from the saved checkpoint
+```
+
+### 6. Run the Tests
+
+```bash
+python -m pytest
+```
+
+---
+
+## 🧠 Model & Architecture
+
+* **Conditional character-level LSTM.** Each first or last name is a sequence `[BOS] c₁ c₂ … cₙ [EOS]`. Two distinct start tokens (`BOS_FIRST`, `BOS_LAST`) let a single network learn both distributions, so first names sound like first names and surnames sound like surnames.
+* **Full-sequence training (teacher forcing).** The model sees the whole name at once and is trained with cross-entropy on the next character at every position; padding is ignored in the loss. A held-out validation split drives early stopping, and the best epoch is kept.
+* **Stateful generation.** During sampling the LSTM hidden state is carried from character to character, so each prediction is conditioned on the entire prefix, not a fixed window.
+* **Novelty filter.** Generated names that match a real player (including suffix-free forms such as *Gary Payton* for *Gary Payton II*) are rejected and resampled, as are names longer than the UI card can display.
+* **Self-contained checkpoint.** `models/lstm_weights.pth` stores the weights, vocabulary, model hyperparameters and the known-name list. Inference never reads the data files, and it loads with `torch.load(..., weights_only=True)`.
+
+### API
+
+| Endpoint | Description |
+|---|---|
+| `GET /` | Serves the frontend. |
+| `GET /api/generate?temperature=0.7` | Returns `{"name": "...", "temperature": 0.7}`. `temperature` must be within `0.1 – 2.0` (otherwise `422`). |
+| `GET /api/health` | Liveness check. |
+
+Interactive API docs are available at `http://127.0.0.1:8000/docs`.
 
 ---
 
