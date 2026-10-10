@@ -1,70 +1,114 @@
-"""Model eğitimi ve kendi kendine yeten checkpoint kaydı."""
+"""Eğitim döngüsü (Trainer) ve uçtan uca eğitim akışı (run_training)."""
 
-from dataclasses import asdict
+from dataclasses import dataclass
 import math
 from pathlib import Path
 import random
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Dataset, random_split
 
+from src.checkpoint import Checkpoint, create_model
 from src.config import CHECKPOINT_PATH, PROCESSED_DATA_PATH, ModelConfig, TrainConfig
 from src.data_loader import NameDataset, Vocabulary, build_samples, collate_batch, known_full_names, load_names
-from src.lstm_model import CharLSTM
-
-CHECKPOINT_VERSION = 2
 
 
-def _run_epoch(model, loader, criterion, device, optimizer=None, grad_clip=None):
-  training = optimizer is not None
-  model.train(training)
-  total_loss, total_items = 0.0, 0
-
-  with torch.set_grad_enabled(training):
-    for inputs, targets in loader:
-      inputs, targets = inputs.to(device), targets.to(device)
-      logits, _ = model(inputs)
-      loss = criterion(logits.reshape(-1, logits.size(-1)), targets.reshape(-1))
-
-      if training:
-        optimizer.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-        optimizer.step()
-
-      total_loss += loss.item() * inputs.size(0)
-      total_items += inputs.size(0)
-
-  return total_loss / total_items
+@dataclass(frozen=True)
+class TrainingResult:
+  best_val_loss: float
+  best_state: dict[str, torch.Tensor]
+  epochs_run: int
 
 
-def save_checkpoint(path: Path, model_state, vocab: Vocabulary, model_config: ModelConfig, known_names):
-  """Ağırlıklar, vocabulary, mimari ve bilinen isimler tek dosyada saklanır.
+class Trainer:
+  """Verilen modeli verilen veri yükleyicilerle eğitir.
 
-  Böylece çıkarım (inference) veri dosyalarına bağımlı kalmaz ve veri değişse
-  bile kayıtlı ağırlıklarla indeksler kaymaz.
+  Veri hazırlama ve diske kaydetme bu sınıfın sorumluluğu değildir; bu sayede
+  farklı model ya da veriyle (ör. testlerde küçük örneklerle) yeniden kullanılabilir.
   """
-  path.parent.mkdir(parents=True, exist_ok=True)
-  torch.save(
-      {
-          'version': CHECKPOINT_VERSION,
-          'model_state': model_state,
-          'vocab_chars': vocab.chars,
-          'model_config': asdict(model_config),
-          'known_names': sorted(known_names),
-      },
-      path,
+
+  def __init__(
+      self,
+      model: nn.Module,
+      train_loader: DataLoader,
+      val_loader: DataLoader,
+      config: TrainConfig,
+      device: torch.device,
+      ignore_index: int = Vocabulary.PAD,
+  ):
+    self.model = model.to(device)
+    self.train_loader = train_loader
+    self.val_loader = val_loader
+    self.config = config
+    self.device = device
+    self.criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
+    self.optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+
+  def fit(self) -> TrainingResult:
+    """Erken durdurma ile eğitir ve en iyi doğrulama kaybına ait ağırlıkları döndürür."""
+    best_val_loss, best_state, stale_epochs = math.inf, None, 0
+    epoch = 0
+
+    for epoch in range(1, self.config.epochs + 1):
+      train_loss = self._run_epoch(self.train_loader, training=True)
+      val_loss = self._run_epoch(self.val_loader, training=False)
+      print(f'Epoch [{epoch}/{self.config.epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}')
+
+      if val_loss < best_val_loss:
+        best_val_loss, stale_epochs = val_loss, 0
+        best_state = {k: v.detach().cpu().clone() for k, v in self.model.state_dict().items()}
+      else:
+        stale_epochs += 1
+        if stale_epochs >= self.config.patience:
+          print(f'Doğrulama kaybı {self.config.patience} epoch boyunca iyileşmedi, eğitim erken durduruldu.')
+          break
+
+    return TrainingResult(best_val_loss, best_state, epoch)
+
+  def _run_epoch(self, loader: DataLoader, training: bool) -> float:
+    self.model.train(training)
+    total_loss, total_items = 0.0, 0
+
+    with torch.set_grad_enabled(training):
+      for inputs, targets in loader:
+        inputs, targets = inputs.to(self.device), targets.to(self.device)
+        logits, _ = self.model(inputs)
+        loss = self.criterion(logits.reshape(-1, logits.size(-1)), targets.reshape(-1))
+
+        if training:
+          self.optimizer.zero_grad()
+          loss.backward()
+          nn.utils.clip_grad_norm_(self.model.parameters(), self.config.grad_clip)
+          self.optimizer.step()
+
+        total_loss += loss.item() * inputs.size(0)
+        total_items += inputs.size(0)
+
+    return total_loss / total_items
+
+
+def build_loaders(dataset: Dataset, config: TrainConfig) -> tuple[DataLoader, DataLoader]:
+  """Veriyi tekrarlanabilir şekilde eğitim/doğrulama olarak böler."""
+  val_size = int(len(dataset) * config.val_ratio)
+  train_set, val_set = random_split(
+      dataset,
+      [len(dataset) - val_size, val_size],
+      generator=torch.Generator().manual_seed(config.seed),
+  )
+  return (
+      DataLoader(train_set, batch_size=config.batch_size, shuffle=True, collate_fn=collate_batch),
+      DataLoader(val_set, batch_size=config.batch_size, collate_fn=collate_batch),
   )
 
 
-def train(
+def run_training(
     data_path: Path = PROCESSED_DATA_PATH,
     checkpoint_path: Path = CHECKPOINT_PATH,
     model_config: ModelConfig = ModelConfig(),
     train_config: TrainConfig = TrainConfig(),
-) -> float:
-  """Modeli eğitir, en iyi doğrulama kaybına sahip ağırlıkları kaydeder ve o kaybı döndürür."""
+) -> TrainingResult:
+  """Veriyi hazırlar, modeli eğitir ve en iyi ağırlıkları checkpoint olarak kaydeder."""
   random.seed(train_config.seed)
   torch.manual_seed(train_config.seed)
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -73,37 +117,12 @@ def train(
   samples = build_samples(names)
   vocab = Vocabulary.from_words(word for _, word in samples)
   dataset = NameDataset(samples, vocab)
+  train_loader, val_loader = build_loaders(dataset, train_config)
+  print(f'{len(names)} isim, {len(dataset)} örnek ({len(train_loader.dataset)} eğitim / {len(val_loader.dataset)} doğrulama), cihaz: {device}')
 
-  val_size = int(len(dataset) * train_config.val_ratio)
-  train_set, val_set = random_split(
-      dataset,
-      [len(dataset) - val_size, val_size],
-      generator=torch.Generator().manual_seed(train_config.seed),
-  )
-  train_loader = DataLoader(train_set, batch_size=train_config.batch_size, shuffle=True, collate_fn=collate_batch)
-  val_loader = DataLoader(val_set, batch_size=train_config.batch_size, collate_fn=collate_batch)
+  model = create_model(vocab, model_config)
+  result = Trainer(model, train_loader, val_loader, train_config, device).fit()
 
-  model = CharLSTM(len(vocab), padding_idx=Vocabulary.PAD, **asdict(model_config)).to(device)
-  criterion = nn.CrossEntropyLoss(ignore_index=Vocabulary.PAD)
-  optimizer = torch.optim.Adam(model.parameters(), lr=train_config.lr)
-
-  print(f'{len(names)} isim, {len(dataset)} örnek ({len(train_set)} eğitim / {val_size} doğrulama), cihaz: {device}')
-
-  best_val_loss, best_state, stale_epochs = math.inf, None, 0
-  for epoch in range(1, train_config.epochs + 1):
-    train_loss = _run_epoch(model, train_loader, criterion, device, optimizer, train_config.grad_clip)
-    val_loss = _run_epoch(model, val_loader, criterion, device)
-    print(f'Epoch [{epoch}/{train_config.epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}')
-
-    if val_loss < best_val_loss:
-      best_val_loss, stale_epochs = val_loss, 0
-      best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
-    else:
-      stale_epochs += 1
-      if stale_epochs >= train_config.patience:
-        print(f'Doğrulama kaybı {train_config.patience} epoch boyunca iyileşmedi, eğitim erken durduruldu.')
-        break
-
-  save_checkpoint(checkpoint_path, best_state, vocab, model_config, known_full_names(names))
-  print(f"En iyi model (Val Loss: {best_val_loss:.4f}) '{checkpoint_path}' konumuna kaydedildi.")
-  return best_val_loss
+  Checkpoint(result.best_state, vocab, model_config, frozenset(known_full_names(names))).save(checkpoint_path)
+  print(f"En iyi model (Val Loss: {result.best_val_loss:.4f}) '{checkpoint_path}' konumuna kaydedildi.")
+  return result

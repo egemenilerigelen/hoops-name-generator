@@ -8,14 +8,16 @@ Kullanım:
 """
 
 import base64
-import json
+from dataclasses import asdict
 from pathlib import Path
 import struct
 
 import torch
 
+from src.checkpoint import FORMAT_VERSION, Checkpoint
 from src.config import CHECKPOINT_PATH, MAX_NAME_LEN, MAX_WORD_LEN, MIN_WORD_LEN, STATIC_DIR
 from src.data_loader import Vocabulary
+from src.io_utils import write_json
 
 WEB_MODEL_PATH = STATIC_DIR / 'model.json'
 
@@ -26,32 +28,29 @@ def _encode_tensor(tensor: torch.Tensor) -> dict:
   return {'shape': list(tensor.shape), 'data': base64.b64encode(raw).decode('ascii')}
 
 
-def build_web_model(checkpoint_path: Path = CHECKPOINT_PATH) -> dict:
-  checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=True)
+def build_web_model(checkpoint: Checkpoint) -> dict:
   return {
-      'version': checkpoint['version'],
-      'vocab': checkpoint['vocab_chars'],
+      'version': FORMAT_VERSION,
+      'vocab': checkpoint.vocab.chars,
       'special': {
           'PAD': Vocabulary.PAD,
           'BOS_FIRST': Vocabulary.BOS_FIRST,
           'BOS_LAST': Vocabulary.BOS_LAST,
           'EOS': Vocabulary.EOS,
       },
-      'config': checkpoint['model_config'],
+      'config': asdict(checkpoint.model_config),
       'limits': {
           'min_word_len': MIN_WORD_LEN,
           'max_word_len': MAX_WORD_LEN,
           'max_name_len': MAX_NAME_LEN,
       },
-      'known_names': checkpoint['known_names'],
-      'tensors': {name: _encode_tensor(t) for name, t in checkpoint['model_state'].items()},
+      'known_names': sorted(checkpoint.known_names),
+      'tensors': {name: _encode_tensor(t) for name, t in checkpoint.model_state.items()},
   }
 
 
 def export_web_model(checkpoint_path: Path = CHECKPOINT_PATH, output_path: Path = WEB_MODEL_PATH):
-  web_model = build_web_model(checkpoint_path)
-  with open(output_path, 'w', encoding='utf-8') as f:
-    json.dump(web_model, f, separators=(',', ':'))
+  write_json(output_path, build_web_model(Checkpoint.load(checkpoint_path)), compact=True)
   print(f"Web modeli '{output_path}' konumuna aktarıldı ({output_path.stat().st_size / 1e6:.2f} MB).")
 
 

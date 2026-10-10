@@ -1,11 +1,12 @@
 """Vocabulary, ad/soyad ayrıştırma ve PyTorch Dataset tanımları."""
 
-import json
 from pathlib import Path
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
+
+from src.io_utils import read_json
 
 FIRST = 'first'
 LAST = 'last'
@@ -17,8 +18,7 @@ PARTICLES = {'van', 'vander', 'von', 'de', 'del', 'da', 'di', 'du', 'la', 'le', 
 
 
 def load_names(path: Path) -> list[str]:
-  with open(path, 'r', encoding='utf-8') as f:
-    return json.load(f)
+  return read_json(path)
 
 
 def split_name(full_name: str) -> tuple[str, str] | None:

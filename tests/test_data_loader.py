@@ -2,7 +2,7 @@ import pytest
 import torch
 
 from src.data_loader import FIRST, LAST, NameDataset, Vocabulary, build_samples, collate_batch, known_full_names, split_name
-from src.preprocessing import NamePipeline
+from src.preprocessing import NameCleaner
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,12 @@ from src.preprocessing import NamePipeline
     ],
 )
 def test_clean_name(raw, expected):
-  assert NamePipeline().clean_name(raw) == expected
+  assert NameCleaner().clean(raw) == expected
+
+
+def test_clean_all_dedupes_filters_and_sorts():
+  raw = ['Nikola Jokić', 'Nikola Jokic', 'Al', 'Aaron Gordon']
+  assert NameCleaner().clean_all(raw) == ['aaron gordon', 'nikola jokic']
 
 
 @pytest.mark.parametrize(

@@ -6,7 +6,8 @@ import subprocess
 import pytest
 import torch
 
-from src.config import MAX_NAME_LEN
+from src.checkpoint import Checkpoint
+from src.config import CHECKPOINT_PATH, MAX_NAME_LEN
 from src.data_loader import Vocabulary
 from src.generator import NameGeneratorService
 from src.web_export import WEB_MODEL_PATH, build_web_model
@@ -26,7 +27,7 @@ def run_js(*args) -> list:
 def test_web_model_matches_checkpoint():
   # Model yeniden eğitilip `python -m src.web_export` unutulursa bu test yakalar
   with open(WEB_MODEL_PATH, encoding='utf-8') as f:
-    assert json.load(f) == build_web_model()
+    assert json.load(f) == build_web_model(Checkpoint.load(CHECKPOINT_PATH))
 
 
 @requires_node

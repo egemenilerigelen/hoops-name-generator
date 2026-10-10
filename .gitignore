@@ -1,34 +1,23 @@
-# Python / PyCache
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
+.pytest_cache/
 
-# Virtual Environment (Sanal Ortam)
+# Virtual environments
 venv/
+.venv/
 env/
-ENV/
-env.bak/
-venv.bak/
 
-# Environment Variables & Configs (Gizli/Hassas Bilgiler)
+# Environment variables / secrets
 .env
-.env.local
+.env.*
 
-# IDE & Editor Settings (VS Code, PyCharm vb.)
+# Editors & local tooling
 .vscode/
 .idea/
+.claude/
 *.swp
-*.swo
 
-# Trained Models & Datasets (İsteğe bağlı: Büyük ağırlık dosyaları)
-# Eğer model dosyaların (.pt / .pth) çok büyükse (100MB+) yorum satırını kaldırabilirsin:
-# models/*.pt
-# models/*.pth
-
-# OS Generated Files
+# OS
 .DS_Store
 Thumbs.db
-# Test cache
-.pytest_cache/

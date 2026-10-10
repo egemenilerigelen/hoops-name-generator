@@ -1,10 +1,12 @@
 """Eğitilmiş checkpoint'ten özgün isim üreten servis katmanı."""
 
+from collections.abc import Set
 from pathlib import Path
 import re
 
 import torch
 
+from src.checkpoint import Checkpoint
 from src.config import CHECKPOINT_PATH, DEFAULT_TEMPERATURE, MAX_NAME_LEN, MAX_TEMPERATURE, MAX_WORD_LEN, MIN_TEMPERATURE, MIN_WORD_LEN
 from src.data_loader import FIRST, LAST, Vocabulary
 from src.lstm_model import CharLSTM
@@ -19,7 +21,11 @@ class NameGenerationError(RuntimeError):
 
 class NameGeneratorService:
 
-  def __init__(self, model: CharLSTM, vocab: Vocabulary, known_names: set[str], device='cpu'):
+  """Model, vocabulary ve bilinen isimler dışarıdan verilir (dependency injection);
+  testlerde sahte bir model, uygulamada checkpoint'ten yüklenen model kullanılır.
+  """
+
+  def __init__(self, model: CharLSTM, vocab: Vocabulary, known_names: Set[str], device='cpu'):
     self.model = model.to(device).eval()
     self.vocab = vocab
     self.known_names = known_names
@@ -27,12 +33,8 @@ class NameGeneratorService:
 
   @classmethod
   def from_checkpoint(cls, path: Path = CHECKPOINT_PATH, device='cpu') -> 'NameGeneratorService':
-    # weights_only=True: checkpoint içinde keyfi Python nesnesi çalıştırılmasını engeller
-    checkpoint = torch.load(path, map_location=device, weights_only=True)
-    vocab = Vocabulary(checkpoint['vocab_chars'])
-    model = CharLSTM(len(vocab), padding_idx=Vocabulary.PAD, **checkpoint['model_config'])
-    model.load_state_dict(checkpoint['model_state'])
-    return cls(model, vocab, set(checkpoint['known_names']), device)
+    checkpoint = Checkpoint.load(path)
+    return cls(checkpoint.build_model(), checkpoint.vocab, checkpoint.known_names, device)
 
   @torch.inference_mode()
   def generate_word(self, kind: str, temperature: float) -> str | None:

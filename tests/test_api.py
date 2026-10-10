@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
 import pytest
 
-from app import app
+from app import app, get_generator
+from src.generator import NameGenerationError
 
 
 @pytest.fixture(scope='module')
@@ -37,6 +38,18 @@ def test_generate_accepts_slider_range(client):
 def test_generate_rejects_invalid_temperature(client):
   for temperature in ('0', '-1', '9', 'abc'):
     assert client.get(f'/api/generate?temperature={temperature}').status_code == 422
+
+
+def test_generation_failure_returns_503(client):
+  class FailingGenerator:
+    def generate(self, temperature):
+      raise NameGenerationError('özgün isim bulunamadı')
+
+  app.dependency_overrides[get_generator] = FailingGenerator
+  try:
+    assert client.get('/api/generate').status_code == 503
+  finally:
+    app.dependency_overrides.clear()
 
 
 def test_health(client):
