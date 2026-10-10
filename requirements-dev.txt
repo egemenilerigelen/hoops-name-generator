@@ -1,0 +1,8 @@
+-r requirements.txt
+
+# Veri toplama (python train.py --scrape)
+nba_api==1.11.4
+
+# Testler
+pytest==9.1.1
+httpx2==2.13.1

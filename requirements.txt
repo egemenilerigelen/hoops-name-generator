@@ -1,6 +1,4 @@
-fastapi
-uvicorn
-torch
-numpy
-
-# pip freeze > requirements.txt
+# Çalışma zamanı (API sunucusu ve çıkarım)
+fastapi==0.140.2
+uvicorn==0.51.0
+torch==2.13.0
