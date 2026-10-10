@@ -1,0 +1,5 @@
+# Metin dosyaları depoda ve çalışma kopyasında LF satır sonuyla tutulur
+* text=auto eol=lf
+
+# İkili dosyalar
+*.pth binary
