@@ -13,8 +13,10 @@
 - **Core Technologies:** Python 3.10+, PyTorch, FastAPI, Uvicorn, Vanilla JavaScript (in-browser inference). Data collection uses `nba_api`; tests use `pytest` + `httpx2` + Node.js; deployment uses GitHub Actions and GitHub Pages.
 
 ### Data Pipeline
-1. `src/scraper.py` fetches all-time player names via `nba_api` → `data/raw/nba_players_raw.json`.
-2. `src/preprocessing.py` (`NamePipeline`) converts Unicode to Latin (`Dončić` → `doncic`), lowercases, keeps only `a-z`, space and hyphen → `data/processed/clean_names.json`.
+`train.py` orchestrates the steps; the modules themselves are pure and do no file I/O (`src/io_utils.py` handles JSON reading and writing).
+
+1. `src/scraper.py` (`fetch_player_names()`) fetches all-time player names via `nba_api` → `data/raw/nba_players_raw.json`.
+2. `src/preprocessing.py` (`NameCleaner`) converts Unicode to Latin (`Dončić` → `doncic`), lowercases, keeps only `a-z`, space and hyphen → `data/processed/clean_names.json`.
 3. `src/data_loader.py` splits each name into **(first, last)**: generational suffixes (`jr`, `ii`, `iii`…) and middle initials are dropped, surname particles (`van`, `de`, `del`…) are kept (`dick van arsdale` → `dick` / `van arsdale`).
 
 ### Vocabulary (`Vocabulary` in `src/data_loader.py`)
@@ -29,13 +31,15 @@
 - `forward(x, hidden=None)` returns logits for **every** timestep plus the hidden state.
 
 ### Training (`src/trainer.py`, entry point `train.py`)
+- **`Trainer` class:** receives the model, data loaders, `TrainConfig` and device via its constructor (dependency injection), runs `fit()` and returns a `TrainingResult`. It knows nothing about files or data preparation, so tests reuse it with a tiny model.
+- **`run_training()`:** composes the pipeline: load names → build `Vocabulary`/`NameDataset` → `build_loaders()` → `create_model()` → `Trainer.fit()` → `Checkpoint.save()`.
 - **Sequence form:** input `[BOS] c₁ … cₙ` → target `c₁ … cₙ [EOS]` (teacher forcing over the full name, not fixed windows).
 - **Loss:** Cross-entropy with `ignore_index=PAD`.
 - **Setup:** Adam (lr 3e-3), batch 64, gradient clipping 1.0, seed 42, 90/10 train/validation split.
 - **Early stopping:** up to 60 epochs, patience 6; the best-validation epoch is saved (current: val loss ≈ 1.74).
 
-### Checkpoint (`models/lstm_weights.pth`)
-- A self-contained dict: `model_state`, `vocab_chars`, `model_config`, `known_names`, `version`.
+### Checkpoint (`src/checkpoint.py` → `models/lstm_weights.pth`)
+- The `Checkpoint` dataclass is the **only** place that knows the on-disk format (`model_state`, `vocab_chars`, `model_config`, `known_names`, `version`). `save()`, `load()` and `build_model()` are used by training, inference and web export alike.
 - Loaded with `torch.load(..., weights_only=True)` (no arbitrary pickle execution).
 - Inference never reads the data files, so vocabulary indices cannot drift from the weights.
 
@@ -55,7 +59,8 @@
 | `GET /api/health` | `{"status": "ok"}` |
 | `GET /docs` | Auto-generated OpenAPI docs. |
 
-- The model is loaded once per process via FastAPI `lifespan` (`app.state.generator`).
+- `create_app(checkpoint_path, static_dir)` is an application factory; the model is loaded once per process via FastAPI `lifespan`.
+- Endpoints receive the generator through `Depends(get_generator)`, so tests can swap in a fake via `app.dependency_overrides` (e.g. to exercise the 503 path).
 - **Stateless:** no user state or database, so the service scales horizontally.
 - No CORS middleware: the UI is served from the same origin.
 
@@ -76,11 +81,13 @@ hoops-name-generator/
 ├── src/
 │   ├── __init__.py
 │   ├── config.py           # Paths, hyperparameters, generation limits
-│   ├── scraper.py          # nba_api data collection
-│   ├── preprocessing.py    # NamePipeline: Unicode → Latin, cleaning
+│   ├── io_utils.py         # read_json / write_json
+│   ├── scraper.py          # fetch_player_names() via nba_api
+│   ├── preprocessing.py    # NameCleaner: Unicode → Latin, cleaning
 │   ├── data_loader.py      # split_name, Vocabulary, NameDataset, collate_batch
 │   ├── lstm_model.py       # CharLSTM nn.Module
-│   ├── trainer.py          # Training loop, validation, early stopping, checkpoint
+│   ├── checkpoint.py       # Checkpoint dataclass: on-disk format, create_model()
+│   ├── trainer.py          # Trainer class + run_training() pipeline
 │   ├── generator.py        # NameGeneratorService: sampling + novelty filter
 │   └── web_export.py       # Checkpoint → static/model.json
 ├── data/
@@ -88,11 +95,12 @@ hoops-name-generator/
 │   └── processed/clean_names.json
 ├── models/
 │   └── lstm_weights.pth    # Self-contained checkpoint
-├── tests/                  # test_data_loader.py, test_generator.py, test_api.py, test_web_model.py (+ js_runner.cjs)
+├── tests/                  # data_loader, generator, trainer/checkpoint, api, web_model (+ js_runner.cjs)
 ├── .github/workflows/
 │   └── pages.yml           # CI: test → GitHub Pages deploy
 ├── docs/
 │   └── PROJECT_CONTEXT.md  # This document
+├── .gitattributes          # LF line endings, binary *.pth
 ├── pytest.ini
 ├── requirements.txt        # Runtime: fastapi, uvicorn, torch (pinned)
 ├── requirements-dev.txt    # + nba_api, pytest, httpx2
@@ -112,12 +120,13 @@ hoops-name-generator/
 
 ## 5. Engineering Principles & Concepts Covered
 
-- **Separation of concerns:** config, data, model definition, training, inference service, API and UI are separate modules.
-- **Loose coupling:** frontend and backend communicate only via a JSON REST contract, which the refactor kept unchanged.
+- **Separation of concerns:** config, I/O, data, model definition, checkpoint format, training, inference service, API and UI are separate modules; pure logic (`NameCleaner`, `Trainer`, `NameGeneratorService`) does no file I/O.
+- **Loose coupling / dependency injection:** classes receive their collaborators through constructors (`Trainer`, `NameGeneratorService`), the API resolves the generator via `Depends`, and only `Checkpoint` knows the serialization format. Stateless helpers stay plain functions instead of being forced into classes.
+- **Frontend contract:** the UI talks to the model only through `HoopsGenerator.generateName(temperature)` (browser) or `GET /api/generate` (server).
 - **Reproducibility:** pinned dependencies, seeded training, deterministic validation split, self-contained checkpoints.
 - **Model lifecycle / MLOps:** offline training with pre-trained inference; early stopping on a validation set; distinction from continuous/online learning (data drift, concept drift, canary deployments, Kubeflow/Kafka pipelines).
 - **PyTorch & serialization:** `state_dict` checkpoints, safe loading with `weights_only=True`.
-- **Testing:** pytest suite covering preprocessing, name splitting, vocabulary/dataset shapes, generator novelty and limits, API validation, and JS ↔ PyTorch numerical parity.
+- **Testing:** pytest suite covering preprocessing, name splitting, vocabulary/dataset shapes, generator novelty and limits, API validation (including a faked failing generator), Trainer/Checkpoint round-trips, and JS ↔ PyTorch numerical parity.
 - **Git workflow:** atomic, conventional commits (`feat`, `refactor`, `test`, `build`, `docs`).
 
 ## 6. How to Run
