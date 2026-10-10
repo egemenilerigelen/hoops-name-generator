@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from src.config import CHECKPOINT_PATH, DEFAULT_TEMPERATURE, MAX_TEMPERATURE, MIN_TEMPERATURE, STATIC_DIR
@@ -27,11 +27,6 @@ class GeneratedName(BaseModel):
   temperature: float
 
 
-@app.get('/', include_in_schema=False)
-def read_root():
-  return FileResponse(STATIC_DIR / 'index.html')
-
-
 @app.get('/api/generate', response_model=GeneratedName)
 def generate_name(
     request: Request,
@@ -52,3 +47,7 @@ def generate_name(
 @app.get('/api/health')
 def health():
   return {'status': 'ok'}
+
+
+# Arayüz ve tarayıcı modeli (index.html, name-generator.js, model.json); API rotalarından sonra eklenmeli
+app.mount('/', StaticFiles(directory=STATIC_DIR, html=True), name='static')

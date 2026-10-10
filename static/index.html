@@ -707,6 +707,7 @@
         </div>
     </div>
 
+    <script src="name-generator.js"></script>
     <script>
         const DEFAULT_TEMP = 0.7;
         let currentGeneratedName = "";
@@ -873,7 +874,7 @@
 
         updateRosterCount();
 
-        /* Inference API Request */
+        /* In-browser Inference (name-generator.js) */
         async function generateName() {
             const display = document.getElementById('nameDisplay');
             const btn = document.getElementById('generateBtn');
@@ -884,10 +885,9 @@
             btn.innerText = "GENERATING...";
 
             try {
-                const response = await fetch(`/api/generate?temperature=${currentTemp}`);
-                const data = await response.json();
+                const name = await HoopsGenerator.generateName(parseFloat(currentTemp));
 
-                currentGeneratedName = normalizeName(data.name);
+                currentGeneratedName = normalizeName(name);
                 display.className = "player-name";
                 
                 adjustFontSize(currentGeneratedName);

@@ -1,4 +1,4 @@
-"""Uçtan uca eğitim hattı: (isteğe bağlı) veri çekme -> temizleme -> eğitim.
+"""Uçtan uca eğitim hattı: (isteğe bağlı) veri çekme -> temizleme -> eğitim -> web modeli.
 
 Kullanım:
   python train.py            # mevcut temiz veriden modeli yeniden eğitir
@@ -10,6 +10,7 @@ import argparse
 from src.config import PROCESSED_DATA_PATH
 from src.preprocessing import NamePipeline
 from src.trainer import train
+from src.web_export import export_web_model
 
 
 def main():
@@ -26,6 +27,8 @@ def main():
     NamePipeline().process_and_save()
 
   train()
+  # Tarayıcıdaki üretici (GitHub Pages) yeni ağırlıkları kullansın
+  export_web_model()
 
 
 if __name__ == '__main__':

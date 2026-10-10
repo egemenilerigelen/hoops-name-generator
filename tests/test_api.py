@@ -16,6 +16,11 @@ def test_index_serves_frontend(client):
   assert 'text/html' in response.headers['content-type']
 
 
+@pytest.mark.parametrize('asset', ['name-generator.js', 'model.json'])
+def test_browser_model_assets_are_served(client, asset):
+  assert client.get(f'/{asset}').status_code == 200
+
+
 def test_generate_default_temperature(client):
   response = client.get('/api/generate')
   assert response.status_code == 200
