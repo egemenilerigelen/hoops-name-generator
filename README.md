@@ -7,6 +7,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![HTML5/CSS3](https://img.shields.io/badge/UI-HTML5%20%2F%20CSS3-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Hosted%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
 
 **🔗 Live demo: [hoops-name.vercel.app](https://hoops-name.vercel.app)**
 
@@ -72,6 +73,7 @@ hoops-name-generator/
 ├── .vercelignore          # Upload only static/ (keeps the Python backend off Vercel)
 ├── .gitattributes         # LF line endings, *.pth as binary
 ├── pytest.ini             # pytest configuration
+├── LICENSE                # MIT License
 ├── requirements.txt       # Runtime dependencies
 └── requirements-dev.txt   # Data collection & test dependencies
 ```
@@ -205,7 +207,7 @@ Every generated name can be saved to your personal roster:
 
 ## 📄 License
 
-This project is open source. Feel free to use, modify, and distribute it.
+This project is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute it, provided the copyright notice is kept.
 
 ---
 
