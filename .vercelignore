@@ -1,0 +1,5 @@
+# Vercel'e yalnızca statik site yüklenir. Python backend (app.py, requirements.txt)
+# yüklenirse Vercel onu FastAPI fonksiyonu sanıp PyTorch kurmaya çalışır.
+/*
+!/static
+!/vercel.json
