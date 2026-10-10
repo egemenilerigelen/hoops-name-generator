@@ -1,7 +1,9 @@
 import json
-import os
+from pathlib import Path
 import re
 import unicodedata
+
+from src.config import PROCESSED_DATA_PATH, RAW_DATA_PATH
 
 
 class NamePipeline:
@@ -51,14 +53,14 @@ class NamePipeline:
 
   def process_and_save(
       self,
-      input_path: str = 'data/raw/nba_players_raw.json',
-      output_path: str = 'data/processed/clean_names.json',
+      input_path: Path = RAW_DATA_PATH,
+      output_path: Path = PROCESSED_DATA_PATH,
   ):
     """Raw JSON verisini okur, pipeline'dan geçirir ve işlenmiş veriyi kaydeder."""
-    if not os.path.exists(input_path):
+    if not input_path.exists():
       print(
-          f"[Hata] '{input_path}' dosyası bulunamadı! Önce scraper.py'yi"
-          ' çalıştırın.'
+          f"[Hata] '{input_path}' dosyası bulunamadı! Önce"
+          ' `python train.py --scrape` çalıştırın.'
       )
       return
 
@@ -77,7 +79,7 @@ class NamePipeline:
     cleaned_names_list = sorted(list(cleaned_names_set))
 
     # Çıktı klasörünü kontrol et
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, 'w', encoding='utf-8') as f:
       json.dump(cleaned_names_list, f, ensure_ascii=False, indent=4)

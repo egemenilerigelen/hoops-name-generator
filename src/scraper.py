@@ -1,8 +1,11 @@
 import json
-import os
+from pathlib import Path
+
 from nba_api.stats.static import players
 
-def fetch_all_nba_players(output_path: str = "data/raw/nba_players_raw.json"):
+from src.config import RAW_DATA_PATH
+
+def fetch_all_nba_players(output_path: Path = RAW_DATA_PATH):
     """
     nba_api kullanarak NBA tarihinde oynamış tüm oyuncuların isimlerini çeker
     ve ham JSON dosyası olarak kaydeder.
@@ -16,7 +19,7 @@ def fetch_all_nba_players(output_path: str = "data/raw/nba_players_raw.json"):
     player_names = [player['full_name'] for player in all_players]
     
     # Çıktı klasörünün varlığını kontrol et, yoksa oluştur
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     
     # JSON olarak diske kaydet
     with open(output_path, 'w', encoding='utf-8') as f:
