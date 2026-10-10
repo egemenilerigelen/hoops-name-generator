@@ -1,11 +1,12 @@
 # 🏀 Hoops Name Generator · AI Basketball Player Name Generator
 
-A deep learning-powered web application that generates unique, realistic, and creative basketball player names using PyTorch and FastAPI. The project features an interactive, basketball court-themed UI with real-time temperature (creativity) control and a personal favorites roster.
+A deep learning-powered web application that generates unique, realistic, and creative basketball player names. The character-level LSTM is trained with PyTorch and runs directly in the browser, and it is also available through a FastAPI backend. The project features an interactive, basketball court-themed UI with real-time temperature (creativity) control and a personal favorites roster.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![HTML5/CSS3](https://img.shields.io/badge/UI-HTML5%20%2F%20CSS3-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Vercel](https://img.shields.io/badge/Hosted%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 
 **🔗 Live demo: [hoops-name.vercel.app](https://hoops-name.vercel.app)**
 
@@ -29,7 +30,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 * **Backend:** FastAPI, Uvicorn
 * **In-Browser Inference:** Vanilla JavaScript LSTM forward pass (verified against PyTorch in tests)
 * **CI / Hosting:** GitHub Actions (tests) · Vercel (static hosting, preview deployments)
-* **Frontend:** HTML5, Modern CSS3 (custom properties, responsive design), JavaScript (Fetch API)
+* **Frontend:** HTML5, Modern CSS3 (custom properties, responsive design), Vanilla JavaScript
 * **Client-Side Storage:** Browser `localStorage` for persisting the favorites roster
 * **Typography:** Google Fonts — Anton, Oswald, JetBrains Mono
 * **Environment:** Python 3.10+
@@ -42,7 +43,7 @@ A deep learning-powered web application that generates unique, realistic, and cr
 hoops-name-generator/
 │
 ├── app.py                 # FastAPI app: serves the UI and the /api endpoints
-├── train.py               # End-to-end pipeline: (scrape) → clean → train → save checkpoint
+├── train.py               # End-to-end pipeline: (scrape) → clean → train → save checkpoint → export model.json
 ├── static/
 │   ├── index.html         # Single-file frontend (HTML/CSS/Vanilla JS)
 │   ├── name-generator.js  # In-browser LSTM inference (JS port of src/generator.py)
@@ -64,9 +65,13 @@ hoops-name-generator/
 ├── models/
 │   └── lstm_weights.pth   # Self-contained checkpoint (weights + vocab + config)
 ├── tests/                 # pytest suite (preprocessing, trainer, generator, API, JS ↔ PyTorch parity)
+├── docs/
+│   └── PROJECT_CONTEXT.md # Detailed technical architecture document
 ├── .github/workflows/     # CI: tests on every push and pull request
 ├── vercel.json            # Vercel: serve static/ only, no build step
 ├── .vercelignore          # Upload only static/ (keeps the Python backend off Vercel)
+├── .gitattributes         # LF line endings, *.pth as binary
+├── pytest.ini             # pytest configuration
 ├── requirements.txt       # Runtime dependencies
 └── requirements-dev.txt   # Data collection & test dependencies
 ```
@@ -114,6 +119,14 @@ Open your browser and navigate to:
 http://127.0.0.1:8000
 ```
 
+The page generates names in the browser using `static/model.json`, exactly like the live site. The REST API runs alongside it (see [API](#api)).
+
+To preview only the static site, as Vercel serves it, without installing Python dependencies:
+
+```bash
+python -m http.server 8000 --directory static
+```
+
 ### 5. (Optional) Retrain the Model
 
 ```bash
@@ -133,17 +146,19 @@ python -m pytest
 
 ## 🧠 Model & Architecture
 
+* **Model size.** Embedding (32) → 2-layer LSTM (hidden 128, dropout 0.2) → Linear, about 220k parameters over a 32-token vocabulary (28 characters + 4 special tokens), trained on 5,063 cleaned NBA names.
 * **Conditional character-level LSTM.** Each first or last name is a sequence `[BOS] c₁ c₂ … cₙ [EOS]`. Two distinct start tokens (`BOS_FIRST`, `BOS_LAST`) let a single network learn both distributions, so first names sound like first names and surnames sound like surnames.
 * **Full-sequence training (teacher forcing).** The model sees the whole name at once and is trained with cross-entropy on the next character at every position; padding is ignored in the loss. A held-out validation split drives early stopping, and the best epoch is kept.
 * **Stateful generation.** During sampling the LSTM hidden state is carried from character to character, so each prediction is conditioned on the entire prefix, not a fixed window.
 * **Novelty filter.** Generated names that match a real player (including suffix-free forms such as *Gary Payton* for *Gary Payton II*) are rejected and resampled, as are names longer than the UI card can display.
 * **Self-contained checkpoint.** `models/lstm_weights.pth` stores the weights, vocabulary, model hyperparameters and the known-name list. Inference never reads the data files, and it loads with `torch.load(..., weights_only=True)`.
+* **Modular design.** `Checkpoint` is the only class that knows the on-disk format, `Trainer` and `NameGeneratorService` receive their dependencies through constructors, file I/O is isolated in `io_utils.py`, and the API resolves the generator via FastAPI `Depends`. See [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md) for details.
 
 ### API
 
 | Endpoint | Description |
 |---|---|
-| `GET /` | Serves the frontend. |
+| `GET /` | Serves the frontend (`static/`: `index.html`, `name-generator.js`, `model.json`). |
 | `GET /api/generate?temperature=0.7` | Returns `{"name": "...", "temperature": 0.7}`. `temperature` must be within `0.1 – 2.0` (otherwise `422`). |
 | `GET /api/health` | Liveness check. |
 
