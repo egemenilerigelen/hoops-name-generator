@@ -1,0 +1,48 @@
+name: Test & Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies (CPU-only PyTorch)
+        run: |
+          pip install "torch==$(grep '^torch==' requirements.txt | cut -d= -f3)" --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-dev.txt
+      # Node.js runner'da hazır gelir; tarayıcı modelinin PyTorch ile aynı sonucu verdiği de test edilir
+      - run: python -m pytest
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: static
+      - id: deployment
+        uses: actions/deploy-pages@v5
