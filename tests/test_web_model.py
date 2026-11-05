@@ -51,3 +51,25 @@ def test_js_generates_novel_names():
     assert name == name.title()
     assert len(name) <= MAX_NAME_LEN
     assert name.lower() not in service.known_names
+
+
+FETCH_RUNNER = Path(__file__).parent / 'js_fetch_runner.cjs'
+
+
+def run_fetch_scenario(scenario: str) -> dict:
+  result = subprocess.run(
+      ['node', str(FETCH_RUNNER), str(WEB_MODEL_PATH), scenario],
+      capture_output=True, text=True, encoding='utf-8', check=True,
+  )
+  return json.loads(result.stdout)
+
+
+@requires_node
+@pytest.mark.parametrize('scenario, ok, kind, calls', [
+  ('flaky', True, None, 3),          # 2 ağ hatası → 3. denemede başarı
+  ('truncated', True, None, 2),      # yarım JSON → yeniden dene
+  ('network', False, 'network', 3),  # hep kopuk → 1 + 2 deneme, sonra 'network'
+  ('http', False, 'http', 1),        # sunucu hatasında yeniden denenmez
+])
+def test_js_model_download_retries(scenario, ok, kind, calls):
+  assert run_fetch_scenario(scenario) == {'ok': ok, 'kind': kind, 'calls': calls}

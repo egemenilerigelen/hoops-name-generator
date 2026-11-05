@@ -901,7 +901,12 @@
 
             } catch (error) {
                 console.error("Error occurred:", error);
-                display.innerText = "⚡ CONNECTION ERROR!";
+                const reasons = {
+                    network: "⚡ NETWORK ERROR - MODEL COULDN'T DOWNLOAD. CHECK YOUR CONNECTION AND TRY AGAIN",
+                    http: `⚡ SERVER ERROR - ${error.message}. TRY AGAIN LATER`,
+                    parse: "⚡ MODEL DOWNLOAD WAS INTERRUPTED. TRY AGAIN"
+                };
+                display.innerText = reasons[error.kind] || "⚡ SOMETHING WENT WRONG. TRY AGAIN";
                 display.style.fontSize = '0.8rem';
                 starBtn.classList.remove('visible', 'active');
                 currentGeneratedName = "";

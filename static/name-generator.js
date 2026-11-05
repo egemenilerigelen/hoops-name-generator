@@ -122,14 +122,47 @@
 
     let generatorPromise = null;
 
+    // Hata nedenini UI'ın ayırt edebilmesi için etiketli hata:
+    // 'network' (bağlantı koptu), 'http' (sunucu hata kodu), 'parse' (bozuk/yarım dosya)
+    function modelError(kind, message, cause) {
+        const err = new Error(message);
+        err.kind = kind;
+        err.cause = cause;
+        return err;
+    }
+
+    async function fetchModel(modelUrl) {
+        let res;
+        try {
+            res = await fetch(modelUrl);
+        } catch (err) {
+            throw modelError('network', 'model.json indirilemedi (bağlantı hatası)', err);
+        }
+        if (!res.ok) throw modelError('http', `model.json yüklenemedi (${res.status})`);
+        try {
+            return await res.json();
+        } catch (err) {
+            // Mobil ağda gövde yarıda kesilirse JSON eksik gelir
+            throw modelError('parse', 'model.json eksik veya bozuk indi', err);
+        }
+    }
+
+    // Geçici (ağ/parse) hatalarda birkaç kez yeniden dener; 4xx/5xx'te denemez
+    async function fetchModelWithRetry(modelUrl, retries, delayMs) {
+        for (let attempt = 0; ; attempt++) {
+            try {
+                return await fetchModel(modelUrl);
+            } catch (err) {
+                if (err.kind === 'http' || attempt >= retries) throw err;
+                await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)));
+            }
+        }
+    }
+
     // Model bir kez indirilir; sonraki çağrılar aynı üreticiyi kullanır
-    async function generateName(temperature, modelUrl = 'model.json') {
+    async function generateName(temperature, modelUrl = 'model.json', { retries = 2, retryDelayMs = 700 } = {}) {
         if (!generatorPromise) {
-            generatorPromise = fetch(modelUrl)
-                .then((res) => {
-                    if (!res.ok) throw new Error(`model.json yüklenemedi (${res.status})`);
-                    return res.json();
-                })
+            generatorPromise = fetchModelWithRetry(modelUrl, retries, retryDelayMs)
                 .then(createGenerator)
                 .catch((err) => { generatorPromise = null; throw err; });
         }
